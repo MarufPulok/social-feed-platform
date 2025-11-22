@@ -1,1 +1,8 @@
+/* Import Bootstrap and Custom CSS first */
+@import "../styles/bootstrap.min.css";
+@import "../styles/common.css";
+@import "../styles/main.css";
+@import "../styles/responsive.css";
+
+/* Import Tailwind CSS after Bootstrap */
 @import "tailwindcss";
