@@ -2,9 +2,10 @@ import { comparePassword } from "@/lib/auth";
 import connectDB from "@/lib/db";
 import { SigninValidation } from "@/lib/validators/auth.validator";
 import User, { IUser } from "@/schemas/User";
+import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-export const authOptions = {
+export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",

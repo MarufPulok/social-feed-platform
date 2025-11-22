@@ -1,5 +1,5 @@
-import NextAuth from "next-auth";
-import { authOptions } from "@/lib/authOptions";
+// This file is kept for backward compatibility
+// For server-side auth, use getServerSession from next-auth/next
+// For client-side auth, use getSession from next-auth/react
 
-export const { handlers, auth, signIn, signOut } = NextAuth(authOptions);
 

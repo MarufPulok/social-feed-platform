@@ -1,18 +1,28 @@
-import { auth } from "@/auth";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
 
-// Define public paths that should NOT be protected by proxy
+// Define public paths that should NOT be protected
 const PUBLIC_PATHS = ["/auth/login", "/auth/register", "/api/auth"];
 
 function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.some((path) => pathname.startsWith(path));
 }
 
-export async function proxy(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
   const isPublic = isPublicPath(pathname);
-  const session = await auth();
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  const session = token
+    ? {
+        user: {
+          id: token.id,
+          email: token.email,
+          firstName: token.firstName,
+          lastName: token.lastName,
+        },
+      }
+    : null;
 
   // Handle public paths first
   if (isPublic) {
@@ -46,3 +56,4 @@ export const config = {
     "/((?!_next/static|_next/image|favicon.ico|api/auth|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
+
