@@ -7,6 +7,9 @@ const config: Config = {
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   
+  // Dark mode configuration for next-themes
+  darkMode: "class",
+  
   // Note: Custom CSS classes (prefixed with _) are automatically preserved
   // because they're defined in CSS files, not as Tailwind utilities.
   // Tailwind only purges its own utility classes, not regular CSS classes.

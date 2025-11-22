@@ -1,14 +1,21 @@
 "use client";
 
 import { ReactQueryProvider } from "./react-query-provider";
+import { ThemeProvider } from "./theme-provider";
 import { ToastProvider } from "./toast-provider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <ReactQueryProvider>
-      <ToastProvider />
-      {children}
-    </ReactQueryProvider>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
+      <ReactQueryProvider>
+        <ToastProvider />
+        {children}
+      </ReactQueryProvider>
+    </ThemeProvider>
   );
 }
-
