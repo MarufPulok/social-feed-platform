@@ -1,4 +1,9 @@
 export default function ViewMoreCommentsButton() {
-  return <div>ViewMoreCommentsButton - Dummy Text</div>;
+  return (
+    <div className="_previous_comment">
+      <button type="button" className="_previous_comment_txt">
+        View 4 previous comments
+      </button>
+    </div>
+  );
 }
-
