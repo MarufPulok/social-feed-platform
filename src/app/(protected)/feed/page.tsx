@@ -12,15 +12,20 @@ import StoriesSection from "@/components/feed/stories/StoriesSection";
 export default function FeedPageRoute() {
   return (
     <div className="_layout _layout_main_wrapper">
+      {/* Switching Btn */}
       <ThemeSwitcher />
+
       <div className="_main_layout">
-        {/* Desktop Header */}
+        {/* Desktop Menu */}
         <Header />
 
-        {/* Mobile Header */}
+        {/* Mobile Menu */}
         <MobileHeader />
 
-        {/* Main Layout Container */}
+        {/* Mobile Bottom Navigation */}
+        <MobileBottomNav />
+
+        {/* Main Layout Structure */}
         <div className="container _custom_container">
           <div className="_layout_inner_wrap">
             <div className="row">
@@ -29,14 +34,14 @@ export default function FeedPageRoute() {
                 <LeftSidebar />
               </div>
 
-              {/* Middle Content Area */}
+              {/* Layout Middle */}
               <div className="col-xl-6 col-lg-6 col-md-12 col-sm-12">
                 <div className="_layout_middle_wrap">
                   <div className="_layout_middle_inner">
-                    {/* Stories Section - Desktop */}
+                    {/* For Desktop */}
                     <StoriesSection />
 
-                    {/* Stories Section - Mobile */}
+                    {/* For Mobile */}
                     <StoriesMobile />
 
                     {/* Post Composer */}
@@ -56,9 +61,6 @@ export default function FeedPageRoute() {
             </div>
           </div>
         </div>
-
-        {/* Mobile Bottom Navigation */}
-        <MobileBottomNav />
       </div>
     </div>
   );
