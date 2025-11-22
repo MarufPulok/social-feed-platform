@@ -12,7 +12,9 @@ export interface RegisterResDto {
 }
 
 export interface LoginResDto {
-  user: UserDto;
+  user: UserDto & {
+    lastLogin?: Date;
+  };
 }
 
 export interface VerifyResDto {

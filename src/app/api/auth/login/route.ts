@@ -3,31 +3,81 @@ import connectDB from "@/lib/db/connection";
 import User from "@/lib/models/User";
 import { LoginReqDto } from "@/dtos/request/auth.req.dto";
 import { ApiResponse } from "@/dtos/response/common.res.dto";
+import { LoginResDto } from "@/dtos/response/auth.res.dto";
 import { generateTokenPair } from "@/lib/utils/jwt";
 import { setAuthCookies } from "@/lib/utils/cookies";
 
+const EMAIL_REGEX = /^\S+@\S+\.\S+$/;
+
+function validateLoginRequest(body: unknown): { isValid: boolean; error?: string } {
+  if (!body || typeof body !== "object") {
+    return { isValid: false, error: "Request body is required" };
+  }
+
+  const { email, password, rememberMe } = body as Partial<LoginReqDto>;
+
+  if (!email || typeof email !== "string" || email.trim().length === 0) {
+    return { isValid: false, error: "Email is required" };
+  }
+
+  if (!EMAIL_REGEX.test(email.trim())) {
+    return { isValid: false, error: "Please provide a valid email address" };
+  }
+
+  if (!password || typeof password !== "string") {
+    return { isValid: false, error: "Password is required" };
+  }
+
+  if (password.length === 0) {
+    return { isValid: false, error: "Password cannot be empty" };
+  }
+
+  if (rememberMe !== undefined && typeof rememberMe !== "boolean") {
+    return { isValid: false, error: "rememberMe must be a boolean value" };
+  }
+
+  return { isValid: true };
+}
+
 export async function POST(request: NextRequest) {
   try {
-    await connectDB();
-
-    const body: LoginReqDto = await request.json();
-    const { email, password, rememberMe } = body;
-
-    // Validation
-    if (!email || !password) {
+    // Parse request body
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch (error) {
       return NextResponse.json<ApiResponse>(
         {
           success: false,
-          error: "Email and password are required",
+          error: "Invalid JSON in request body",
         },
         { status: 400 }
       );
     }
 
-    // Find user and include password field
-    const user = await User.findOne({ email: email.toLowerCase() }).select("+password");
+    // Validate request
+    const validation = validateLoginRequest(body);
+    if (!validation.isValid) {
+      return NextResponse.json<ApiResponse>(
+        {
+          success: false,
+          error: validation.error,
+        },
+        { status: 400 }
+      );
+    }
+
+    const { email, password, rememberMe } = body as LoginReqDto;
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Connect to database
+    await connectDB();
+
+    // Find user and include password field (needed for password comparison)
+    const user = await User.findOne({ email: normalizedEmail }).select("+password");
 
     if (!user) {
+      // Return generic error to prevent email enumeration
       return NextResponse.json<ApiResponse>(
         {
           success: false,
@@ -37,12 +87,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if user is active
+    // Check if user is active and not deleted
     if (!user.isActive || user.deletedAt) {
       return NextResponse.json<ApiResponse>(
         {
           success: false,
-          error: "Account is inactive or deleted",
+          error: "Account is inactive or has been deleted",
         },
         { status: 403 }
       );
@@ -72,6 +122,7 @@ export async function POST(request: NextRequest) {
     // Verify password
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
+      // Return generic error to prevent user enumeration
       return NextResponse.json<ApiResponse>(
         {
           success: false,
@@ -81,18 +132,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update last login
+    // Update last login timestamp
     user.lastLogin = new Date();
     await user.save();
 
-    // Generate tokens
+    // Generate JWT tokens
     const tokens = generateTokenPair({
       userId: user._id.toString(),
       email: user.email,
     });
 
-    // Create response
-    const response = NextResponse.json<ApiResponse>(
+    // Create response with user data
+    const response = NextResponse.json<ApiResponse<LoginResDto>>(
       {
         success: true,
         data: {
@@ -101,6 +152,8 @@ export async function POST(request: NextRequest) {
             email: user.email,
             isEmailVerified: user.isEmailVerified,
             avatar: user.avatar,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
             lastLogin: user.lastLogin,
           },
         },
@@ -109,16 +162,33 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     );
 
-    // Set httpOnly cookies
+    // Set httpOnly cookies with tokens
+    // If rememberMe is true, access token expires in 7 days, otherwise 15 minutes
     setAuthCookies(tokens, rememberMe || false, response);
 
     return response;
   } catch (error) {
     console.error("Login error:", error);
+
+    // Handle specific error cases
+    if (error && typeof error === "object" && "name" in error) {
+      if (error.name === "ValidationError") {
+        const validationError = error as { errors: Record<string, { message: string }> };
+        const firstError = Object.values(validationError.errors)[0];
+        return NextResponse.json<ApiResponse>(
+          {
+            success: false,
+            error: firstError?.message || "Validation failed",
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     return NextResponse.json<ApiResponse>(
       {
         success: false,
-        error: "Login failed. Please try again.",
+        error: "Login failed. Please try again later.",
       },
       { status: 500 }
     );

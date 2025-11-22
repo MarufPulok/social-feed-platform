@@ -1,20 +1,37 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getAccessToken, getRefreshToken } from "@/lib/utils/cookies";
-import { verifyAccessToken, verifyRefreshToken, generateTokenPair } from "@/lib/utils/jwt";
-import { setAuthCookies } from "@/lib/utils/cookies";
+import { ApiResponse } from "@/dtos/response/common.res.dto";
 import connectDB from "@/lib/db/connection";
-import User from "@/lib/models/User";
+import User, { IUser } from "@/lib/models/User";
+import {
+  getAccessToken,
+  getRefreshToken,
+  setAuthCookies,
+} from "@/lib/utils/cookies";
+import {
+  generateTokenPair,
+  verifyAccessToken,
+  verifyRefreshToken,
+} from "@/lib/utils/jwt";
+import { NextRequest, NextResponse } from "next/server";
 
-export interface AuthenticatedRequest extends NextRequest {
-  user?: {
-    id: string;
-    email: string;
-  };
+export interface AuthenticatedUser {
+  id: string;
+  email: string;
 }
 
+export interface AuthenticationResult {
+  user: AuthenticatedUser;
+  fullUser?: IUser;
+  response?: NextResponse;
+}
+
+/**
+ * Authenticates a request by verifying JWT tokens
+ * @param request - The Next.js request object
+ * @returns Authentication result with user info, or null if authentication fails
+ */
 export async function authenticateRequest(
   request: NextRequest
-): Promise<{ user: { id: string; email: string }; response?: NextResponse } | null> {
+): Promise<AuthenticationResult | null> {
   try {
     await connectDB();
 
@@ -82,6 +99,7 @@ export async function authenticateRequest(
         id: user._id.toString(),
         email: user.email,
       },
+      fullUser: user,
       response,
     };
   } catch (error) {
@@ -90,8 +108,13 @@ export async function authenticateRequest(
   }
 }
 
-export function createUnauthorizedResponse(message = "Unauthorized") {
-  return NextResponse.json(
+/**
+ * Creates an unauthorized JSON response
+ */
+export function createUnauthorizedResponse(
+  message = "Unauthorized"
+): NextResponse<ApiResponse> {
+  return NextResponse.json<ApiResponse>(
     {
       success: false,
       error: message,
@@ -100,3 +123,94 @@ export function createUnauthorizedResponse(message = "Unauthorized") {
   );
 }
 
+/**
+ * Creates a forbidden JSON response
+ */
+export function createForbiddenResponse(
+  message = "Forbidden"
+): NextResponse<ApiResponse> {
+  return NextResponse.json<ApiResponse>(
+    {
+      success: false,
+      error: message,
+    },
+    { status: 403 }
+  );
+}
+
+/**
+ * Higher-order function to protect API route handlers
+ * Usage:
+ * export const GET = withAuth(async (request, { user, fullUser }) => {
+ *   // Your handler code here
+ *   return NextResponse.json({ data: "protected data" });
+ * });
+ */
+export function withAuth<T = unknown>(
+  handler: (
+    request: NextRequest,
+    context: { user: AuthenticatedUser; fullUser: IUser }
+  ) => Promise<NextResponse<T>> | NextResponse<T>
+) {
+  return async (request: NextRequest): Promise<NextResponse> => {
+    const authResult = await authenticateRequest(request);
+
+    if (!authResult) {
+      return createUnauthorizedResponse();
+    }
+
+    if (!authResult.fullUser) {
+      // Fetch full user if not already loaded
+      await connectDB();
+      const fullUser = await User.findById(authResult.user.id).select(
+        "-password"
+      );
+      if (!fullUser) {
+        return createUnauthorizedResponse();
+      }
+      authResult.fullUser = fullUser;
+    }
+
+    try {
+      const response = await handler(request, {
+        user: authResult.user,
+        fullUser: authResult.fullUser,
+      });
+
+      // If token was refreshed, merge cookies into the response
+      if (authResult.response) {
+        authResult.response.cookies.getAll().forEach((cookie) => {
+          response.cookies.set(cookie.name, cookie.value, cookie);
+        });
+      }
+
+      return response;
+    } catch (error) {
+      console.error("Protected route handler error:", error);
+      return NextResponse.json<ApiResponse>(
+        {
+          success: false,
+          error: "Internal server error",
+        },
+        { status: 500 }
+      );
+    }
+  };
+}
+
+/**
+ * Middleware helper to check if a route requires authentication
+ */
+export function requiresAuth(pathname: string): boolean {
+  // Protect API routes (except auth routes)
+  if (pathname.startsWith("/api/") && !pathname.startsWith("/api/auth/")) {
+    return true;
+  }
+
+  // Protect page routes
+  if (pathname.startsWith("/feed") || pathname.startsWith("/(protected)")) {
+    return true;
+  }
+
+  return false;
+}
