@@ -5,6 +5,17 @@ const config: Config = {
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    // Include CSS files to detect custom classes
+    "./src/styles/**/*.css",
+  ],
+  
+  // Safelist to preserve all custom classes (prefixed with _)
+  // This ensures all 1,072+ custom classes are never purged
+  safelist: [
+    {
+      pattern: /^_/,
+      // Match all classes starting with underscore
+    },
   ],
   
   // Strategy to avoid conflicts with Bootstrap:

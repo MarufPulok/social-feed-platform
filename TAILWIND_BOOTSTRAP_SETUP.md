@@ -20,9 +20,9 @@ This order ensures:
 
 The `tailwind.config.ts` file is configured with:
 
-- **`preflight: false`** - Disables Tailwind's reset styles to avoid conflicts with Bootstrap's normalize
+- **`safelist`** - Preserves all custom classes prefixed with `_` (1,072+ classes) to prevent any purging
 - **`important: true`** - Adds `!important` to all Tailwind utilities, giving them higher specificity than Bootstrap classes
-- **Content paths** - Configured to scan all React/TypeScript files in `src/`
+- **Content paths** - Configured to scan all React/TypeScript files in `src/` and CSS files in `src/styles/`
 
 ## Usage Strategies
 
