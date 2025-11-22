@@ -5,23 +5,51 @@ export default function RegisterForm() {
   return (
     <section className="_social_registration_wrapper _layout_main_wrapper">
       <div className="_shape_one">
-        <img src="/svg/shape1.svg" alt="" className="_shape_img" />
-        <img src="/svg/dark_shape.svg" alt="" className="_dark_shape" />
+        <Image
+          src="/svg/shape1.svg"
+          alt=""
+          className="_shape_img"
+          width={200}
+          height={200}
+        />
+        <Image
+          src="/svg/dark_shape.svg"
+          alt=""
+          className="_dark_shape"
+          width={200}
+          height={200}
+        />
       </div>
       <div className="_shape_two">
-        <img src="/svg/shape2.svg" alt="" className="_shape_img" />
-        <img
+        <Image
+          src="/svg/shape2.svg"
+          alt=""
+          className="_shape_img"
+          width={200}
+          height={200}
+        />
+        <Image
           src="/svg/dark_shape1.svg"
           alt=""
           className="_dark_shape _dark_shape_opacity"
+          width={200}
+          height={200}
         />
       </div>
       <div className="_shape_three">
-        <img src="/svg/shape3.svg" alt="" className="_shape_img" />
-        <img
+        <Image
+          src="/svg/shape3.svg"
+          alt=""
+          className="_shape_img"
+          width={200}
+          height={200}
+        />
+        <Image
           src="/svg/dark_shape2.svg"
           alt=""
           className="_dark_shape _dark_shape_opacity"
+          width={200}
+          height={200}
         />
       </div>
       <div className="_social_registration_wrap">
@@ -50,10 +78,12 @@ export default function RegisterForm() {
             <div className="col-xl-4 col-lg-4 col-md-12 col-sm-12">
               <div className="_social_registration_content">
                 <div className="_social_registration_right_logo _mar_b28">
-                  <img
+                  <Image
                     src="/svg/logo.svg"
                     alt="Image"
                     className="_right_logo"
+                    width={150}
+                    height={50}
                   />
                 </div>
                 <p className="_social_registration_content_para _mar_b8">
@@ -66,12 +96,14 @@ export default function RegisterForm() {
                   type="button"
                   className="_social_registration_content_btn _mar_b40"
                 >
-                  <img
+                  <Image
                     src="/svg/google.svg"
                     alt="Image"
                     className="_google_img"
+                    width={20}
+                    height={20}
                   />{" "}
-                  <span>Register with google</span>
+                  <span className="font-bold">Register with google</span>
                 </button>
                 <div className="_social_registration_content_bottom_txt _mar_b40">
                   {" "}
@@ -163,4 +195,3 @@ export default function RegisterForm() {
     </section>
   );
 }
-
