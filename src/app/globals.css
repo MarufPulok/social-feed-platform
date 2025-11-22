@@ -6,3 +6,8 @@
 
 /* Import Tailwind CSS after Bootstrap */
 @import "tailwindcss";
+
+/* Apply Poppins font globally */
+body {
+  font-family: var(--font-poppins), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
