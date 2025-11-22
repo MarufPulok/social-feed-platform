@@ -30,6 +30,7 @@ export default function RegisterForm({ onSubmit, isPending = false }: RegisterFo
   });
 
   const handleFormSubmit = (data: RegisterRequest & { repeatPassword: string }) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { repeatPassword, ...registerData } = data;
     onSubmit(registerData);
   };

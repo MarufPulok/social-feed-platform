@@ -4,6 +4,8 @@ import { SigninValidation } from "@/lib/validators/auth.validator";
 import User, { IUser } from "@/schemas/User";
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { JWT } from "next-auth/jwt";
+import { Session, User as NextAuthUser } from "next-auth";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -65,21 +67,33 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt" as const,
   },
   callbacks: {
-    async jwt({ token, user }: any) {
+    async jwt({
+      token,
+      user,
+    }: {
+      token: JWT;
+      user?: NextAuthUser;
+    }): Promise<JWT> {
       if (user) {
         token.id = user.id;
         token.email = user.email;
-        token.firstName = (user as any).firstName;
-        token.lastName = (user as any).lastName;
+        token.firstName = user.firstName;
+        token.lastName = user.lastName;
       }
       return token;
     },
-    async session({ session, token }: any) {
+    async session({
+      session,
+      token,
+    }: {
+      session: Session;
+      token: JWT;
+    }): Promise<Session> {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.email = token.email as string;
-        (session.user as any).firstName = token.firstName;
-        (session.user as any).lastName = token.lastName;
+        session.user.firstName = token.firstName;
+        session.user.lastName = token.lastName;
       }
       return session;
     },
