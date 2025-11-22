@@ -5,18 +5,13 @@ const config: Config = {
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
-    // Include CSS files to detect custom classes
-    "./src/styles/**/*.css",
   ],
   
-  // Safelist to preserve all custom classes (prefixed with _)
-  // This ensures all 1,072+ custom classes are never purged
-  safelist: [
-    {
-      pattern: /^_/,
-      // Match all classes starting with underscore
-    },
-  ],
+  // Note: Custom CSS classes (prefixed with _) are automatically preserved
+  // because they're defined in CSS files, not as Tailwind utilities.
+  // Tailwind only purges its own utility classes, not regular CSS classes.
+  // Your 1,072+ custom classes in common.css, main.css, and responsive.css
+  // will never be purged since they're regular CSS, not Tailwind utilities.
   
   // Strategy to avoid conflicts with Bootstrap:
   // Option 1: Use prefix (uncomment to enable)
