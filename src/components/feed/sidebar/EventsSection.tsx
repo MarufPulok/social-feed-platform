@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 
@@ -53,9 +55,17 @@ export default function EventsSection() {
             <hr className="_underline" />
             <div className="_left_inner_event_bottom">
               <p className="_left_iner_event_bottom">{event.peopleGoing} People Going</p>
-              <Link href="#0" className="_left_iner_event_bottom_link">
+              <button
+                type="button"
+                className="_left_iner_event_bottom_link"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  // Handle "Going" action here
+                }}
+              >
                 Going
-              </Link>
+              </button>
             </div>
           </div>
         </Link>

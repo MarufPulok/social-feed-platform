@@ -27,9 +27,10 @@ export default function RootLayout({
         <Providers>{children}</Providers>
         <Script
           src="/assets/js/bootstrap.bundle.min.js"
-          strategy="lazyOnload"
+          strategy="afterInteractive"
         />
-        <Script src="/assets/js/custom.js" strategy="lazyOnload" />
+        {/* Temporarily disabled custom.js - consider converting to React components */}
+        {/* <Script src="/assets/js/custom.js" strategy="afterInteractive" /> */}
       </body>
     </html>
   );
