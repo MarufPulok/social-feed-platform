@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createPostSchema, CreatePostFormData } from "@/validators/post.validator";
 import { useCreatePost, useUploadImage } from "@/hooks/usePostsQuery";
@@ -11,11 +11,14 @@ import { toast } from "sonner";
 export default function PostComposer() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
     reset,
     setValue,
@@ -32,6 +35,7 @@ export default function PostComposer() {
   const uploadImageMutation = useUploadImage();
 
   const selectedImage = watch("image");
+  const contentValue = watch("content");
 
   const onSubmit = async (data: CreatePostFormData) => {
     try {
@@ -41,26 +45,38 @@ export default function PostComposer() {
 
       // Upload image if present
       if (data.image) {
-        const uploadResult = await uploadImageMutation.mutateAsync({
-          file: data.image,
-          type: "post",
-        });
-        imageUrl = uploadResult?.url;
-        imagePublicId = uploadResult?.publicId;
+        setIsUploadingImage(true);
+        try {
+          const uploadResult = await uploadImageMutation.mutateAsync({
+            file: data.image,
+            type: "post",
+          });
+          imageUrl = uploadResult?.url;
+          imagePublicId = uploadResult?.publicId;
+        } finally {
+          setIsUploadingImage(false);
+        }
       }
+
+      // Ensure privacy value is correctly set
+      const privacy = data.privacy || "public";
 
       // Create post
       await createPostMutation.mutateAsync({
         content: data.content,
-        privacy: data.privacy,
+        privacy: privacy,
         image: imageUrl,
         imagePublicId: imagePublicId,
       });
 
       toast.success("Post created successfully!");
       
-      // Reset form
-      reset();
+      // Reset form with default values
+      reset({
+        content: "",
+        privacy: "public",
+        image: undefined,
+      });
       setImagePreview(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
@@ -108,26 +124,30 @@ export default function PostComposer() {
           <div className="form-floating _feed_inner_text_area_box_form">
             <textarea
               className={`form-control _textarea ${errors.content ? "border-red-500" : ""}`}
-              placeholder="Write something ..."
+              placeholder="Leave a comment here"
               id="floatingTextarea"
               {...register("content")}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isUploadingImage}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
             />
-            <label className="_feed_textarea_label" htmlFor="floatingTextarea">
-              Write something ...
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="23"
-                height="24"
-                fill="none"
-                viewBox="0 0 23 24"
-              >
-                <path
-                  fill="#666"
-                  d="M19.504 19.209c.332 0 .601.289.601.646 0 .326-.226.596-.52.64l-.081.005h-6.276c-.332 0-.602-.289-.602-.645 0-.327.227-.597.52-.64l.082-.006h6.276zM13.4 4.417c1.139-1.223 2.986-1.223 4.125 0l1.182 1.268c1.14 1.223 1.14 3.205 0 4.427L9.82 19.649a2.619 2.619 0 01-1.916.85h-3.64c-.337 0-.61-.298-.6-.66l.09-3.941a3.019 3.019 0 01.794-1.982l8.852-9.5zm-.688 2.562l-7.313 7.85a1.68 1.68 0 00-.441 1.101l-.077 3.278h3.023c.356 0 .698-.133.968-.376l.098-.096 7.35-7.887-3.608-3.87zm3.962-1.65a1.633 1.633 0 00-2.423 0l-.688.737 3.606 3.87.688-.737c.631-.678.666-1.755.105-2.477l-.105-.124-1.183-1.268z"
-                />
-              </svg>
-            </label>
+            {!contentValue && !isFocused && (
+              <label className="_feed_textarea_label" htmlFor="floatingTextarea">
+                Write something ...
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="23"
+                  height="24"
+                  fill="none"
+                  viewBox="0 0 23 24"
+                >
+                  <path
+                    fill="#666"
+                    d="M19.504 19.209c.332 0 .601.289.601.646 0 .326-.226.596-.52.64l-.081.005h-6.276c-.332 0-.602-.289-.602-.645 0-.327.227-.597.52-.64l.082-.006h6.276zM13.4 4.417c1.139-1.223 2.986-1.223 4.125 0l1.182 1.268c1.14 1.223 1.14 3.205 0 4.427L9.82 19.649a2.619 2.619 0 01-1.916.85h-3.64c-.337 0-.61-.298-.6-.66l.09-3.941a3.019 3.019 0 01.794-1.982l8.852-9.5zm-.688 2.562l-7.313 7.85a1.68 1.68 0 00-.441 1.101l-.077 3.278h3.023c.356 0 .698-.133.968-.376l.098-.096 7.35-7.887-3.608-3.87zm3.962-1.65a1.633 1.633 0 00-2.423 0l-.688.737 3.606 3.87.688-.737c.631-.678.666-1.755.105-2.477l-.105-.124-1.183-1.268z"
+                  />
+                </svg>
+              </label>
+            )}
           </div>
         </div>
 
@@ -141,20 +161,40 @@ export default function PostComposer() {
         {/* Image Preview */}
         {imagePreview && (
           <div className="mt-3 ml-16 relative inline-block">
-            <Image
-              src={imagePreview}
-              alt="Preview"
-              width={200}
-              height={200}
-              className="rounded-lg object-cover"
-            />
-            <button
-              type="button"
-              onClick={removeImage}
-              className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
-            >
-              ×
-            </button>
+            <div className="relative">
+              <Image
+                src={imagePreview}
+                alt="Preview"
+                width={200}
+                height={200}
+                className={`rounded-lg object-cover ${isUploadingImage ? "blur-sm" : ""}`}
+              />
+              {isUploadingImage && (
+                <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg flex items-center justify-center">
+                  <div className="text-white text-sm flex flex-col items-center gap-2">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                    <span>Uploading...</span>
+                  </div>
+                </div>
+              )}
+              {!isUploadingImage && (
+                <button
+                  type="button"
+                  onClick={removeImage}
+                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* Upload Progress Indicator */}
+        {isUploadingImage && !imagePreview && (
+          <div className="mt-3 ml-16 flex items-center gap-2 text-blue-600">
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+            <span className="text-sm">Uploading image...</span>
           </div>
         )}
 
@@ -163,14 +203,21 @@ export default function PostComposer() {
           <div className="_feed_inner_text_area_item">
             {/* Privacy Selector */}
             <div className="_feed_common mr-3">
-              <select
-                {...register("privacy")}
-                className="form-select border-0"
-                disabled={isSubmitting}
-              >
-                <option value="public">Public</option>
-                <option value="private">Private</option>
-              </select>
+              <Controller
+                name="privacy"
+                control={control}
+                render={({ field }) => (
+                  <select
+                    {...field}
+                    className="form-select border-0"
+                    disabled={isSubmitting || isUploadingImage}
+                    value={field.value}
+                  >
+                    <option value="public">Public</option>
+                    <option value="private">Private</option>
+                  </select>
+                )}
+              />
             </div>
 
             {/* Photo Upload */}
@@ -182,7 +229,7 @@ export default function PostComposer() {
                 onChange={handleImageChange}
                 className="hidden"
                 id="photo-upload"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isUploadingImage}
               />
               <label
                 htmlFor="photo-upload"
@@ -227,7 +274,13 @@ export default function PostComposer() {
                   clipRule="evenodd"
                 />
               </svg>
-              <span>{isSubmitting ? "Posting..." : "Post"}</span>
+              <span>
+                {isUploadingImage 
+                  ? "Uploading..." 
+                  : isSubmitting 
+                  ? "Posting..." 
+                  : "Post"}
+              </span>
             </button>
           </div>
         </div>
@@ -239,14 +292,21 @@ export default function PostComposer() {
             <div className="_feed_inner_text_area_item">
               {/* Privacy Selector Mobile */}
               <div className="_feed_common mr-2">
-                <select
-                  {...register("privacy")}
-                  className="form-select border-0 text-sm"
-                  disabled={isSubmitting}
-                >
-                  <option value="public">Public</option>
-                  <option value="private">Private</option>
-                </select>
+                <Controller
+                  name="privacy"
+                  control={control}
+                  render={({ field }) => (
+                    <select
+                      {...field}
+                      className="form-select border-0 text-sm"
+                      disabled={isSubmitting || isUploadingImage}
+                      value={field.value}
+                    >
+                      <option value="public">Public</option>
+                      <option value="private">Private</option>
+                    </select>
+                  )}
+                />
               </div>
 
               {/* Photo Upload Mobile */}
@@ -276,7 +336,7 @@ export default function PostComposer() {
                   onChange={handleImageChange}
                   className="hidden"
                   id="photo-upload-mobile"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isUploadingImage}
                 />
               </div>
             </div>
@@ -301,7 +361,13 @@ export default function PostComposer() {
                     clipRule="evenodd"
                   />
                 </svg>
-                <span>{isSubmitting ? "Posting..." : "Post"}</span>
+                <span>
+                  {isUploadingImage 
+                    ? "Uploading..." 
+                    : isSubmitting 
+                    ? "Posting..." 
+                    : "Post"}
+                </span>
               </button>
             </div>
           </div>

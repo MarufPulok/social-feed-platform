@@ -4,6 +4,7 @@ import { verifyAuth } from "@/lib/middleware/auth.middleware";
 import Post from "@/lib/models/Post";
 import User from "@/lib/models/User";
 import { createPostServerSchema } from "@/validators/post.validator";
+import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -27,17 +28,20 @@ export async function GET(request: NextRequest) {
     let query: {
       isDeleted: boolean;
       privacy?: string;
-      $or?: Array<{ privacy: string } | { author: string; privacy: string }>;
+      $or?: Array<
+        | { privacy: string }
+        | { author: mongoose.Types.ObjectId; privacy: string }
+      >;
     } = { isDeleted: false };
 
     if (authResult.authenticated) {
+      // Convert userId string to ObjectId for query
+      const authorId = new mongoose.Types.ObjectId(authResult.user.userId);
+
       // Authenticated users can see public posts + their own private posts
       query = {
         isDeleted: false,
-        $or: [
-          { privacy: "public" },
-          { author: authResult.user.userId, privacy: "private" },
-        ],
+        $or: [{ privacy: "public" }, { author: authorId, privacy: "private" }],
       };
     } else {
       // Unauthenticated users can only see public posts
