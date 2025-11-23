@@ -1,15 +1,48 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 
 export default function PostDropdownMenu() {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    }
+
+    if (isDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isDropdownOpen]);
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
+  const handleMenuItemClick = () => {
+    setIsDropdownOpen(false);
+  };
+
   return (
-    <>
+    <div ref={dropdownRef}>
       <div className="_feed_timeline_post_dropdown">
         <button
           type="button"
           id="_timeline_show_drop_btn"
           className="_feed_timeline_post_dropdown_link"
+          onClick={toggleDropdown}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -25,10 +58,20 @@ export default function PostDropdownMenu() {
         </button>
       </div>
       {/* Dropdown */}
-      <div id="_timeline_drop" className="_feed_timeline_dropdown _timeline_dropdown">
+      <div
+        id="_timeline_drop"
+        className={`_feed_timeline_dropdown _timeline_dropdown ${
+          isDropdownOpen ? "show" : ""
+        }`}
+      >
         <ul className="_feed_timeline_dropdown_list">
           <li className="_feed_timeline_dropdown_item">
-            <Link href="#0" className="_feed_timeline_dropdown_link">
+            <Link
+              href="#0"
+              className="_feed_timeline_dropdown_link"
+              onClick={handleMenuItemClick}
+              style={{ display: "flex", alignItems: "center" }}
+            >
               <span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -50,7 +93,12 @@ export default function PostDropdownMenu() {
             </Link>
           </li>
           <li className="_feed_timeline_dropdown_item">
-            <Link href="#0" className="_feed_timeline_dropdown_link">
+            <Link
+              href="#0"
+              className="_feed_timeline_dropdown_link"
+              onClick={handleMenuItemClick}
+              style={{ display: "flex", alignItems: "center" }}
+            >
               <span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -71,7 +119,12 @@ export default function PostDropdownMenu() {
             </Link>
           </li>
           <li className="_feed_timeline_dropdown_item">
-            <Link href="#0" className="_feed_timeline_dropdown_link">
+            <Link
+              href="#0"
+              className="_feed_timeline_dropdown_link"
+              onClick={handleMenuItemClick}
+              style={{ display: "flex", alignItems: "center" }}
+            >
               <span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -93,7 +146,12 @@ export default function PostDropdownMenu() {
             </Link>
           </li>
           <li className="_feed_timeline_dropdown_item">
-            <Link href="#0" className="_feed_timeline_dropdown_link">
+            <Link
+              href="#0"
+              className="_feed_timeline_dropdown_link"
+              onClick={handleMenuItemClick}
+              style={{ display: "flex", alignItems: "center" }}
+            >
               <span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -122,7 +180,12 @@ export default function PostDropdownMenu() {
             </Link>
           </li>
           <li className="_feed_timeline_dropdown_item">
-            <Link href="#0" className="_feed_timeline_dropdown_link">
+            <Link
+              href="#0"
+              className="_feed_timeline_dropdown_link"
+              onClick={handleMenuItemClick}
+              style={{ display: "flex", alignItems: "center" }}
+            >
               <span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -145,6 +208,6 @@ export default function PostDropdownMenu() {
           </li>
         </ul>
       </div>
-    </>
+    </div>
   );
 }
