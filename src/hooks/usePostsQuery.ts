@@ -4,6 +4,11 @@ import { queryKeys } from "@/lib/query-keys";
 import { ApiResponse } from "@/dtos/response/common.res.dto";
 
 /**
+ * Reaction type enum
+ */
+export type ReactionType = "like" | "haha" | "love" | "angry";
+
+/**
  * Post interface
  */
 export interface Post {
@@ -17,9 +22,14 @@ export interface Post {
     email: string;
     avatar?: string;
   };
-  likes: string[];
-  likesCount: number;
+  reactions: {
+    userId: string;
+    type: ReactionType;
+  }[];
+  reactionsCount: number;
   commentsCount: number;
+  sharesCount: number;
+  currentUserReaction?: ReactionType;
   isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
@@ -134,6 +144,46 @@ export function useUploadImage() {
   return useMutation({
     mutationFn: ({ file, type }: { file: File; type?: "post" | "profile" | "comment" }) =>
       uploadImage(file, type),
+  });
+}
+
+/**
+ * React to a post
+ */
+async function reactToPost(
+  postId: string,
+  reactionType: ReactionType
+): Promise<ApiResponse<Post>> {
+  const response = await fetch(API_ENDPOINTS.POSTS.REACT(postId), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({ type: reactionType }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to react to post");
+  }
+
+  return response.json();
+}
+
+/**
+ * Hook to react to a post
+ */
+export function useReactToPost() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ postId, type }: { postId: string; type: ReactionType }) =>
+      reactToPost(postId, type),
+    onSuccess: () => {
+      // Invalidate posts query to refetch the list
+      queryClient.invalidateQueries({ queryKey: queryKeys.posts.all });
+    },
   });
 }
 

@@ -14,6 +14,7 @@ export const API_ENDPOINTS = {
     DETAIL: (id: string) => `${API_BASE_URL}/posts/${id}`,
     UPDATE: (id: string) => `${API_BASE_URL}/posts/${id}`,
     DELETE: (id: string) => `${API_BASE_URL}/posts/${id}`,
+    REACT: (id: string) => `${API_BASE_URL}/posts/${id}/react`,
     LIKE: (id: string) => `${API_BASE_URL}/posts/${id}/like`,
     LIKES: (id: string) => `${API_BASE_URL}/posts/${id}/likes`,
   },

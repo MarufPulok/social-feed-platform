@@ -59,6 +59,21 @@ export async function GET(request: NextRequest) {
       .populate("author", "email avatar")
       .lean();
 
+    // Add current user's reaction if authenticated
+    if (authResult.authenticated) {
+      const userId = new mongoose.Types.ObjectId(authResult.user.userId);
+      posts.forEach((post) => {
+        const userReaction = post.reactions?.find(
+          (r: { userId: mongoose.Types.ObjectId; type: string }) =>
+            r.userId?.toString() === userId.toString()
+        );
+        if (userReaction) {
+          (post as { currentUserReaction?: string }).currentUserReaction =
+            userReaction.type;
+        }
+      });
+    }
+
     // Get total count for pagination
     const total = await Post.countDocuments(query);
 
@@ -137,6 +152,10 @@ export async function POST(request: NextRequest) {
       image,
       imagePublicId,
       author: authResult.user.userId,
+      reactions: [],
+      reactionsCount: 0,
+      commentsCount: 0,
+      sharesCount: 0,
     });
 
     // Update user's posts count

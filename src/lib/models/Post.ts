@@ -13,9 +13,13 @@ export interface IPost extends Document {
   author: mongoose.Types.ObjectId;
 
   // Engagement
-  likes: mongoose.Types.ObjectId[];
-  likesCount: number;
+  reactions: {
+    userId: mongoose.Types.ObjectId;
+    type: "like" | "haha" | "love" | "angry";
+  }[];
+  reactionsCount: number;
   commentsCount: number;
+  sharesCount: number;
 
   // Status
   isDeleted: boolean;
@@ -54,17 +58,29 @@ const postSchema = new Schema<IPost>(
       required: [true, "Author is required"],
       index: true,
     },
-    likes: [
+    reactions: [
       {
-        type: Schema.Types.ObjectId,
-        ref: "User",
+        userId: {
+          type: Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
+        },
+        type: {
+          type: String,
+          enum: ["like", "haha", "love", "angry"],
+          required: true,
+        },
       },
     ],
-    likesCount: {
+    reactionsCount: {
       type: Number,
       default: 0,
     },
     commentsCount: {
+      type: Number,
+      default: 0,
+    },
+    sharesCount: {
       type: Number,
       default: 0,
     },
@@ -93,10 +109,10 @@ postSchema.index({ author: 1, createdAt: -1 });
 postSchema.index({ privacy: 1, createdAt: -1 });
 postSchema.index({ isDeleted: 1, createdAt: -1 });
 
-// Update likes count when likes array changes
+// Update reactions count when reactions array changes
 postSchema.pre("save", function () {
-  if (this.isModified("likes")) {
-    this.likesCount = this.likes.length;
+  if (this.isModified("reactions")) {
+    this.reactionsCount = this.reactions.length;
   }
 });
 
