@@ -89,6 +89,7 @@ export async function POST(request: NextRequest) {
     const user = await User.create({
       email: normalizedEmail,
       password,
+      authProvider: "local",
     });
 
     // Generate JWT tokens

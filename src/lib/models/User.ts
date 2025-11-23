@@ -4,11 +4,15 @@ import mongoose, { Document, Model, Schema } from "mongoose";
 export interface IUser extends Document {
   // Authentication
   email: string;
-  password: string;
+  password?: string; // Optional for OAuth users
   isEmailVerified: boolean;
   emailVerificationToken?: string;
   passwordResetToken?: string;
   passwordResetExpires?: Date;
+
+  // OAuth fields
+  googleId?: string;
+  authProvider: "local" | "google";
 
   // Profile Information (optional, can be added later)
   avatar?: string;
@@ -53,11 +57,12 @@ const userSchema = new Schema<IUser>(
       lowercase: true,
       trim: true,
       match: [/^\S+@\S+\.\S+$/, "Please provide a valid email"],
-      index: true,
     },
     password: {
       type: String,
-      required: [true, "Password is required"],
+      required: function (this: IUser) {
+        return this.authProvider === "local";
+      },
       minlength: [6, "Password must be at least 6 characters"],
       select: false, // Don't return password by default
     },
@@ -76,6 +81,19 @@ const userSchema = new Schema<IUser>(
     passwordResetExpires: {
       type: Date,
       select: false,
+    },
+
+    // OAuth fields
+    googleId: {
+      type: String,
+      sparse: true, // Allows multiple null values but unique non-null values
+      unique: true,
+    },
+    authProvider: {
+      type: String,
+      enum: ["local", "google"],
+      default: "local",
+      required: true,
     },
 
     // Profile Information (optional, can be added later)
@@ -170,19 +188,25 @@ const userSchema = new Schema<IUser>(
 );
 
 // Indexes for performance
-userSchema.index({ email: 1 });
+// Note: email and googleId indexes are automatically created by unique: true
 userSchema.index({ "friendRequests.received": 1 });
 userSchema.index({ deletedAt: 1 });
 
-// Hash password before saving
+// Hash password before saving (only for local auth)
 userSchema.pre("save", async function () {
-  if (!this.isModified("password")) {
+  const user = this as unknown as IUser;
+  // Only hash password if it's modified and user is using local auth
+  if (
+    !this.isModified("password") ||
+    user.authProvider !== "local" ||
+    !user.password
+  ) {
     return;
   }
 
   try {
     const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
+    user.password = await bcrypt.hash(user.password, salt);
   } catch (error) {
     throw error;
   }
@@ -197,11 +221,12 @@ userSchema.methods.comparePassword = async function (
 
 // Update counts when followers/following change
 userSchema.pre("save", function () {
+  const user = this as unknown as IUser;
   if (this.isModified("followers")) {
-    this.followersCount = this.followers.length;
+    user.followersCount = user.followers.length;
   }
   if (this.isModified("following")) {
-    this.followingCount = this.following.length;
+    user.followingCount = user.following.length;
   }
 });
 

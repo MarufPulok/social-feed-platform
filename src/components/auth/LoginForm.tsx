@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -17,6 +18,26 @@ export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const loginMutation = useLogin();
+
+  // Handle OAuth errors
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (error) {
+      const errorMessages: Record<string, string> = {
+        oauth_failed: "Google sign-in failed. Please try again.",
+        oauth_cancelled: "Google sign-in was cancelled.",
+        oauth_not_configured: "Google sign-in is not configured.",
+        invalid_token: "Invalid authentication token.",
+        no_email: "No email found in Google account.",
+        account_inactive: "Your account is inactive. Please contact support.",
+      };
+      toast.error(errorMessages[error] || "An error occurred during sign-in.");
+
+      // Remove error from URL
+      const newUrl = window.location.pathname;
+      router.replace(newUrl);
+    }
+  }, [searchParams, router]);
 
   const {
     register,
@@ -45,6 +66,10 @@ export default function LoginForm() {
           : "Login failed. Please try again.";
       toast.error(errorMessage);
     }
+  };
+
+  const handleGoogleSignIn = () => {
+    window.location.href = "/api/auth/google";
   };
 
   return (
@@ -133,7 +158,7 @@ export default function LoginForm() {
                 <button
                   type="button"
                   className="_social_login_content_btn _mar_b40"
-                  disabled
+                  onClick={handleGoogleSignIn}
                 >
                   <Image
                     src="/svg/google.svg"

@@ -15,12 +15,10 @@ const nextConfig: NextConfig = {
     
     // Allow remote images if needed (add your domains here)
     remotePatterns: [
-      // Example: Uncomment and add your image CDN domains
-      // {
-      //   protocol: "https",
-      //   hostname: "example.com",
-      //   pathname: "/images/**",
-      // },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
     ],
     
     // Disable static image imports warning (if using public folder images)

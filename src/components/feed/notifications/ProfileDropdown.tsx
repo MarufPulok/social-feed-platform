@@ -44,7 +44,12 @@ export default function ProfileDropdown() {
     <div className="_header_nav_profile">
       <div
         className="_header_nav_profile_image"
-        style={{ marginRight: "24px" }}
+        style={{
+          marginRight: "12px",
+          width: "40px",
+          height: "40px",
+          flexShrink: 0,
+        }}
       >
         {user.avatar ? (
           <Image
@@ -53,6 +58,12 @@ export default function ProfileDropdown() {
             width={40}
             height={40}
             className="_nav_profile_img"
+            style={{
+              borderRadius: "50%",
+              objectFit: "cover",
+              width: "40px",
+              height: "40px",
+            }}
           />
         ) : (
           <div
@@ -110,6 +121,10 @@ export default function ProfileDropdown() {
                 width={40}
                 height={40}
                 className="_nav_drop_img"
+                style={{
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                }}
               />
             ) : (
               <div

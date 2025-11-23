@@ -5,7 +5,8 @@ import { useRegister } from "@/hooks/useAuthQuery";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -26,7 +27,28 @@ type RegisterFormData = z.infer<typeof registerFormSchema>;
 
 export default function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const registerMutation = useRegister();
+
+  // Handle OAuth errors
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (error) {
+      const errorMessages: Record<string, string> = {
+        oauth_failed: "Google sign-in failed. Please try again.",
+        oauth_cancelled: "Google sign-in was cancelled.",
+        oauth_not_configured: "Google sign-in is not configured.",
+        invalid_token: "Invalid authentication token.",
+        no_email: "No email found in Google account.",
+        account_inactive: "Your account is inactive. Please contact support.",
+      };
+      toast.error(errorMessages[error] || "An error occurred during sign-in.");
+
+      // Remove error from URL
+      const newUrl = window.location.pathname;
+      router.replace(newUrl);
+    }
+  }, [searchParams, router]);
 
   const {
     register,
@@ -57,6 +79,10 @@ export default function RegisterForm() {
           : "Registration failed. Please try again.";
       toast.error(errorMessage);
     }
+  };
+
+  const handleGoogleSignIn = () => {
+    window.location.href = "/api/auth/google";
   };
   return (
     <section className="_social_registration_wrapper _layout_main_wrapper">
@@ -151,7 +177,7 @@ export default function RegisterForm() {
                 <button
                   type="button"
                   className="_social_registration_content_btn _mar_b40"
-                  disabled
+                  onClick={handleGoogleSignIn}
                 >
                   <Image
                     src="/svg/google.svg"
