@@ -225,3 +225,28 @@ export function isAuthRoute(pathname: string): boolean {
     (route) => pathname === route || pathname.startsWith(`${route}/`)
   );
 }
+
+/**
+ * Simplified authentication verification for API routes
+ * Returns authentication status and user info
+ */
+export async function verifyAuth(
+  request: NextRequest
+): Promise<
+  | { authenticated: true; user: AuthenticatedUser & { userId: string } }
+  | { authenticated: false; user?: never }
+> {
+  const authResult = await authenticateRequest(request);
+
+  if (!authResult) {
+    return { authenticated: false };
+  }
+
+  return {
+    authenticated: true,
+    user: {
+      ...authResult.user,
+      userId: authResult.user.id,
+    },
+  };
+}

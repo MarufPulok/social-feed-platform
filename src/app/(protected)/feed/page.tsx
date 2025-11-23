@@ -10,8 +10,11 @@ import LeftSidebar from "@/components/feed/sidebar/LeftSidebar";
 import RightSidebar from "@/components/feed/sidebar/RightSidebar";
 import StoriesMobile from "@/components/feed/stories/StoriesMobile";
 import StoriesSection from "@/components/feed/stories/StoriesSection";
+import { usePosts } from "@/hooks/usePostsQuery";
 
 export default function FeedPageRoute() {
+  const { data: postsResponse, isLoading, isError, error } = usePosts(1, 10);
+
   return (
     <div className="_layout _layout_main_wrapper">
       {/* Switching Btn */}
@@ -49,9 +52,34 @@ export default function FeedPageRoute() {
                     {/* Post Composer */}
                     <PostComposer />
 
+                    {/* Loading State */}
+                    {isLoading && (
+                      <div className="text-center py-8">
+                        <p className="text-gray-500">Loading posts...</p>
+                      </div>
+                    )}
+
+                    {/* Error State */}
+                    {isError && (
+                      <div className="text-center py-8">
+                        <p className="text-red-500">
+                          {error instanceof Error ? error.message : "Failed to load posts"}
+                        </p>
+                      </div>
+                    )}
+
                     {/* Timeline Posts */}
-                    <Post />
-                    <Post />
+                    {postsResponse?.data && postsResponse.data.length > 0 ? (
+                      postsResponse.data.map((post) => (
+                        <Post key={post._id} post={post} />
+                      ))
+                    ) : (
+                      !isLoading && !isError && (
+                        <div className="text-center py-8">
+                          <p className="text-gray-500">No posts yet. Be the first to post!</p>
+                        </div>
+                      )
+                    )}
                   </div>
                 </div>
               </div>
