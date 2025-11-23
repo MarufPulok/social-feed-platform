@@ -66,17 +66,25 @@ export async function GET(request: NextRequest) {
 
     // Add current user's reaction if authenticated
     if (authResult.authenticated) {
-      const userId = new mongoose.Types.ObjectId(authResult.user.userId);
+      const userId = authResult.user.userId;
       posts.forEach((post) => {
         // Ensure reactions is an array (handle legacy data)
         if (!post.reactions) {
           post.reactions = [];
         }
 
-        const userReaction = post.reactions.find(
-          (r: { userId: mongoose.Types.ObjectId; type: string }) =>
-            r.userId?.toString() === userId.toString()
-        );
+        const userReaction = post.reactions.find((r: {
+          userId: { _id: string } | mongoose.Types.ObjectId;
+          type: string;
+        }) => {
+          // Handle populated userId (object with _id) vs unpopulated (ObjectId)
+          const reactionUserId =
+            typeof r.userId === "object" && "_id" in r.userId
+              ? r.userId._id.toString()
+              : r.userId.toString();
+          return reactionUserId === userId;
+        });
+
         if (userReaction) {
           (post as { currentUserReaction?: string }).currentUserReaction =
             userReaction.type;

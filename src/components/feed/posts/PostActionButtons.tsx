@@ -3,7 +3,7 @@
 import { Post } from "@/hooks/usePostsQuery";
 import { useToggleReaction } from "@/hooks/useReactionsQuery";
 import { ReactionType } from "@/validators/reaction.validator";
-import NextImage from "next/image";
+import { default as NextImage } from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 interface PostActionButtonsProps {
@@ -86,8 +86,6 @@ export default function PostActionButtons({ post }: PostActionButtonsProps) {
           className="relative"
           style={{
             flex: 1,
-            paddingTop: showReactionPicker ? "72px" : "0",
-            transition: "padding-top 150ms ease-out",
           }}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
@@ -108,13 +106,15 @@ export default function PostActionButtons({ post }: PostActionButtonsProps) {
             <span className="_feed_inner_timeline_reaction_link">
               <span>
                 {currentReaction ? (
-                  <NextImage
-                    src={REACTION_ICONS[currentReaction]}
-                    alt={currentReaction}
-                    width={19}
-                    height={19}
-                    className="inline-block"
-                  />
+                  <div className="w-[19px] h-[19px]">
+                    <NextImage
+                      src={REACTION_ICONS[currentReaction]}
+                      alt={currentReaction}
+                      width={19}
+                      height={19}
+                      className="_reaction_svg"
+                    />
+                  </div>
                 ) : (
                   <svg
                     className="_reaction_svg"
@@ -185,7 +185,8 @@ export default function PostActionButtons({ post }: PostActionButtonsProps) {
                       alignItems: "center",
                       justifyContent: "center",
                       cursor: "pointer",
-                      transition: "transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+                      transition:
+                        "transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1)",
                       flexShrink: 0,
                       width: "50px",
                       height: "50px",
