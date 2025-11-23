@@ -1,7 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { API_ENDPOINTS } from "@/configs/url.config";
-import { queryKeys } from "@/lib/query-keys";
 import { ApiResponse } from "@/dtos/response/common.res.dto";
+import { queryKeys } from "@/lib/query-keys";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 /**
  * Reaction type enum
@@ -23,7 +23,11 @@ export interface Post {
     avatar?: string;
   };
   reactions: {
-    userId: string;
+    userId: {
+      _id: string;
+      email: string;
+      avatar?: string;
+    };
     type: ReactionType;
   }[];
   reactionsCount: number;

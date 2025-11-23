@@ -57,19 +57,36 @@ export async function GET(request: NextRequest) {
       .skip(skip)
       .limit(limit)
       .populate("author", "email avatar")
+      .populate({
+        path: "reactions.userId",
+        select: "email avatar",
+        strictPopulate: false,
+      })
       .lean();
 
     // Add current user's reaction if authenticated
     if (authResult.authenticated) {
       const userId = new mongoose.Types.ObjectId(authResult.user.userId);
       posts.forEach((post) => {
-        const userReaction = post.reactions?.find(
+        // Ensure reactions is an array (handle legacy data)
+        if (!post.reactions) {
+          post.reactions = [];
+        }
+
+        const userReaction = post.reactions.find(
           (r: { userId: mongoose.Types.ObjectId; type: string }) =>
             r.userId?.toString() === userId.toString()
         );
         if (userReaction) {
           (post as { currentUserReaction?: string }).currentUserReaction =
             userReaction.type;
+        }
+      });
+    } else {
+      // Ensure reactions is an array for unauthenticated users too
+      posts.forEach((post) => {
+        if (!post.reactions) {
+          post.reactions = [];
         }
       });
     }

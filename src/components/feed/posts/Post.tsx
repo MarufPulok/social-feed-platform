@@ -46,7 +46,7 @@ export default function Post({ post }: PostProps) {
       </div>
       <PostReactionsDisplay post={post} />
       <PostActionButtons post={post} />
-      <CommentSection />
+      <CommentSection postId={post._id} />
     </div>
   );
 }

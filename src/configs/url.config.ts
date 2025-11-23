@@ -20,12 +20,15 @@ export const API_ENDPOINTS = {
   },
   COMMENTS: {
     CREATE: `${API_BASE_URL}/comments`,
-    LIST: (postId: string) => `${API_BASE_URL}/comments/${postId}`,
-    LIKE: (id: string) => `${API_BASE_URL}/comments/${id}/like`,
-    LIKES: (id: string) => `${API_BASE_URL}/comments/${id}/likes`,
+    LIST: `${API_BASE_URL}/comments`,
     DELETE: (id: string) => `${API_BASE_URL}/comments/${id}`,
+  },
+  REACTIONS: {
+    TOGGLE: `${API_BASE_URL}/reactions`,
+    USERS: (targetId: string) => `${API_BASE_URL}/reactions/${targetId}`,
   },
   UPLOAD: {
     IMAGE: `${API_BASE_URL}/upload`,
   },
 };
+

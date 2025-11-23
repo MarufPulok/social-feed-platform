@@ -1,265 +1,295 @@
 "use client";
 
-import { Post, ReactionType, useReactToPost } from "@/hooks/usePostsQuery";
-import { useEffect, useState } from "react";
+import { Post } from "@/hooks/usePostsQuery";
+import { useToggleReaction } from "@/hooks/useReactionsQuery";
+import { ReactionType } from "@/validators/reaction.validator";
+import NextImage from "next/image";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface PostActionButtonsProps {
   post: Post;
 }
 
+// Constants
+const REACTIONS: ReactionType[] = ["like", "love", "haha", "angry"];
+
+const REACTION_ICONS = {
+  like: "/svg/like_react.svg",
+  love: "/svg/love_react.svg",
+  haha: "/svg/haha_react.svg",
+  angry: "/svg/angry_react.svg",
+} as const;
+
+const PICKER_CLOSE_DELAY = 300;
+
 export default function PostActionButtons({ post }: PostActionButtonsProps) {
   const [showReactionPicker, setShowReactionPicker] = useState(false);
-  const [closeTimeout, setCloseTimeout] = useState<NodeJS.Timeout | null>(null);
-  const reactMutation = useReactToPost();
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const toggleReaction = useToggleReaction();
 
-  const handleReaction = async (type: ReactionType) => {
-    try {
-      if (closeTimeout) {
-        clearTimeout(closeTimeout);
-        setCloseTimeout(null);
-      }
-      setShowReactionPicker(false);
-      await reactMutation.mutateAsync({
-        postId: post._id,
-        type,
-      });
-    } catch (error) {
-      console.error("Failed to react:", error);
+  // Clear any pending timeout
+  const clearPendingTimeout = useCallback(() => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
     }
-  };
+  }, []);
+
+  // Handle reaction selection
+  const handleReaction = useCallback(
+    async (type: ReactionType) => {
+      try {
+        clearPendingTimeout();
+        setShowReactionPicker(false);
+        await toggleReaction.mutateAsync({
+          targetId: post._id,
+          targetType: "post",
+          type,
+        });
+      } catch (error) {
+        console.error("Failed to react:", error);
+      }
+    },
+    [post._id, toggleReaction, clearPendingTimeout]
+  );
+
+  // Handle mouse enter
+  const handleMouseEnter = useCallback(() => {
+    clearPendingTimeout();
+    setShowReactionPicker(true);
+  }, [clearPendingTimeout]);
+
+  // Handle mouse leave
+  const handleMouseLeave = useCallback(() => {
+    closeTimeoutRef.current = setTimeout(() => {
+      setShowReactionPicker(false);
+    }, PICKER_CLOSE_DELAY);
+  }, []);
 
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
-      if (closeTimeout) {
-        clearTimeout(closeTimeout);
-      }
+      clearPendingTimeout();
     };
-  }, [closeTimeout]);
+  }, [clearPendingTimeout]);
 
   const currentReaction = post.currentUserReaction;
 
-  // Reaction icons
-  const reactionIcons = {
-    like: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="19"
-        height="19"
-        fill="none"
-        viewBox="0 0 19 19"
-      >
-        <path fill="#1877F2" d="M9.5 19a9.5 9.5 0 100-19 9.5 9.5 0 000 19z" />
-        <path
-          fill="#fff"
-          d="M7.125 7.125c0-.396.396-.792.792-.792h1.583c.396 0 .792.396.792.792v4.75c0 .396-.396.792-.792.792H7.917c-.396 0-.792-.396-.792-.792V7.125zm1.583-1.583c-1.188 0-1.979.791-1.979 1.979v4.75c0 1.188.791 1.979 1.979 1.979h1.583c.396 0 .792-.396.792-.792V7.125c0-.396-.396-.792-.792-.792H8.708zm3.167 1.583c0-.396.396-.792.792-.792.396 0 .792.396.792.792v1.583c0 .396-.396.792-.792.792-.396 0-.792-.396-.792-.792V7.125z"
-        />
-      </svg>
-    ),
-    haha: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="19"
-        height="19"
-        fill="none"
-        viewBox="0 0 19 19"
-      >
-        <path fill="#FFCC4D" d="M9.5 19a9.5 9.5 0 100-19 9.5 9.5 0 000 19z" />
-        <path
-          fill="#664500"
-          d="M9.5 11.083c-1.912 0-3.181-.222-4.75-.527-.358-.07-1.056 0-1.056 1.055 0 2.111 2.425 4.75 5.806 4.75 3.38 0 5.805-2.639 5.805-4.75 0-1.055-.697-1.125-1.055-1.055-1.57.305-2.838.527-4.75.527z"
-        />
-        <path
-          fill="#fff"
-          d="M4.75 11.611s1.583.528 4.75.528 4.75-.528 4.75-.528-1.056 2.111-4.75 2.111-4.75-2.11-4.75-2.11z"
-        />
-        <path
-          fill="#664500"
-          d="M6.333 8.972c.729 0 1.32-.827 1.32-1.847s-.591-1.847-1.32-1.847c-.729 0-1.32.827-1.32 1.847s.591 1.847 1.32 1.847zM12.667 8.972c.729 0 1.32-.827 1.32-1.847s-.591-1.847-1.32-1.847c-.729 0-1.32.827-1.32 1.847s.591 1.847 1.32 1.847z"
-        />
-      </svg>
-    ),
-    love: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="19"
-        height="19"
-        fill="none"
-        viewBox="0 0 19 19"
-      >
-        <path fill="#F62D51" d="M9.5 19a9.5 9.5 0 100-19 9.5 9.5 0 000 19z" />
-        <path
-          fill="#fff"
-          d="M9.5 6.333c-1.583-1.583-4.75-1.583-4.75 1.583 0 2.375 4.75 5.542 4.75 5.542s4.75-3.167 4.75-5.542c0-3.166-3.167-3.166-4.75-1.583z"
-        />
-      </svg>
-    ),
-    angry: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="19"
-        height="19"
-        fill="none"
-        viewBox="0 0 19 19"
-      >
-        <path fill="#FF6B35" d="M9.5 19a9.5 9.5 0 100-19 9.5 9.5 0 000 19z" />
-        <path
-          fill="#664500"
-          d="M6.333 8.972c.729 0 1.32-.827 1.32-1.847s-.591-1.847-1.32-1.847c-.729 0-1.32.827-1.32 1.847s.591 1.847 1.32 1.847zM12.667 8.972c.729 0 1.32-.827 1.32-1.847s-.591-1.847-1.32-1.847c-.729 0-1.32.827-1.32 1.847s.591 1.847 1.32 1.847z"
-        />
-        <path
-          fill="#664500"
-          d="M9.5 13.458c-1.583 0-2.375-.792-2.375-1.583 0-.396.396-.792.792-.792h3.167c.396 0 .792.396.792.792 0 .791-.792 1.583-2.376 1.583z"
-        />
-      </svg>
-    ),
-  };
-
   return (
-    <div
-      className="_feed_inner_timeline_reaction"
-      style={{ display: "flex", width: "100%" }}
-    >
-      {/* Reaction Button */}
+    <>
       <div
-        className="relative"
-        style={{ flex: 1, paddingTop: showReactionPicker ? "60px" : "0" }}
-        onMouseEnter={() => {
-          if (closeTimeout) {
-            clearTimeout(closeTimeout);
-            setCloseTimeout(null);
-          }
-          setShowReactionPicker(true);
-        }}
-        onMouseLeave={() => {
-          const timeout = setTimeout(() => {
-            setShowReactionPicker(false);
-          }, 200);
-          setCloseTimeout(timeout);
-        }}
+        className="_feed_inner_timeline_reaction"
+        style={{ display: "flex", width: "100%" }}
       >
-        <button
-          className={`_feed_inner_timeline_reaction_emoji _feed_reaction ${
-            currentReaction ? "_feed_reaction_active" : ""
-          }`}
-          onClick={(e) => {
-            e.preventDefault();
-            if (!showReactionPicker) {
-              setShowReactionPicker(true);
-            }
+        {/* Reaction Button */}
+        <div
+          className="relative"
+          style={{
+            flex: 1,
+            paddingTop: showReactionPicker ? "72px" : "0",
+            transition: "padding-top 150ms ease-out",
           }}
-          style={{ width: "100%" }}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
+          <button
+            className={`_feed_inner_timeline_reaction_emoji _feed_reaction ${
+              currentReaction ? "_feed_reaction_active" : ""
+            }`}
+            onClick={(e) => {
+              e.preventDefault();
+              if (!showReactionPicker) {
+                setShowReactionPicker(true);
+              }
+            }}
+            style={{ width: "100%" }}
+            type="button"
+          >
+            <span className="_feed_inner_timeline_reaction_link">
+              <span>
+                {currentReaction ? (
+                  <NextImage
+                    src={REACTION_ICONS[currentReaction]}
+                    alt={currentReaction}
+                    width={19}
+                    height={19}
+                    className="inline-block"
+                  />
+                ) : (
+                  <svg
+                    className="_reaction_svg"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="21"
+                    height="21"
+                    fill="none"
+                    viewBox="0 0 21 21"
+                  >
+                    <path
+                      stroke="#000"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M6.125 9.625v5.25M3.5 20.125h14a2.625 2.625 0 002.625-2.625v-7a2.625 2.625 0 00-2.625-2.625h-1.313l-3.5-6.125a1.313 1.313 0 00-2.374 0l-3.5 6.125H3.5a2.625 2.625 0 00-2.625 2.625v7a2.625 2.625 0 002.625 2.625z"
+                    />
+                  </svg>
+                )}
+                {currentReaction
+                  ? currentReaction.charAt(0).toUpperCase() +
+                    currentReaction.slice(1)
+                  : "Like"}
+              </span>
+            </span>
+          </button>
+
+          {/* Reaction Picker */}
+          {showReactionPicker && (
+            <div
+              className="absolute bottom-full left-0 bg-white rounded-full"
+              style={{
+                marginBottom: "8px",
+                padding: "10px 16px",
+                boxShadow:
+                  "0 0 0 1px rgba(0,0,0,.08), 0 4px 20px rgba(0,0,0,.18)",
+                animation: "slideUpFade 200ms cubic-bezier(0.16, 1, 0.3, 1)",
+                zIndex: 1000,
+                minWidth: "280px",
+                width: "fit-content",
+                whiteSpace: "nowrap",
+              }}
+              onClick={(e) => e.stopPropagation()}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  gap: "10px",
+                  alignItems: "center",
+                  justifyContent: "space-evenly",
+                }}
+              >
+                {REACTIONS.map((type) => (
+                  <button
+                    key={type}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleReaction(type);
+                    }}
+                    className="reaction-button"
+                    style={{
+                      padding: "6px",
+                      borderRadius: "50%",
+                      border: "none",
+                      background: "transparent",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      transition: "transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+                      flexShrink: 0,
+                      width: "50px",
+                      height: "50px",
+                    }}
+                    title={type.charAt(0).toUpperCase() + type.slice(1)}
+                    type="button"
+                    aria-label={`React with ${type}`}
+                  >
+                    <NextImage
+                      src={REACTION_ICONS[type]}
+                      alt={type}
+                      width={40}
+                      height={40}
+                      className="inline-block"
+                      style={{ pointerEvents: "none", display: "block" }}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Comment Button */}
+        <button
+          className="_feed_inner_timeline_reaction_comment _feed_reaction"
+          style={{ flex: 1 }}
+          type="button"
         >
           <span className="_feed_inner_timeline_reaction_link">
             <span>
-              {currentReaction
-                ? reactionIcons[currentReaction]
-                : reactionIcons.like}
-              {currentReaction
-                ? currentReaction.charAt(0).toUpperCase() +
-                  currentReaction.slice(1)
-                : "Like"}
+              <svg
+                className="_reaction_svg"
+                xmlns="http://www.w3.org/2000/svg"
+                width="21"
+                height="21"
+                fill="none"
+                viewBox="0 0 21 21"
+              >
+                <path
+                  stroke="#000"
+                  d="M1 10.5c0-.464 0-.696.009-.893A9 9 0 019.607 1.01C9.804 1 10.036 1 10.5 1v0c.464 0 .696 0 .893.009a9 9 0 018.598 8.598c.009.197.009.429.009.893v6.046c0 1.36 0 2.041-.317 2.535a2 2 0 01-.602.602c-.494.317-1.174.317-2.535.317H10.5c-.464 0-.696 0-.893-.009a9 9 0 01-8.598-8.598C1 11.196 1 10.964 1 10.5v0z"
+                />
+                <path
+                  stroke="#000"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6.938 9.313h7.125M10.5 14.063h3.563"
+                />
+              </svg>
+              Comment
             </span>
           </span>
         </button>
 
-        {/* Reaction Picker */}
-        {showReactionPicker && (
-          <div
-            className="absolute bottom-full left-0 bg-white rounded-full shadow-lg p-2 flex gap-1 z-50"
-            style={{ marginBottom: "8px" }}
-            onClick={(e) => e.stopPropagation()}
-            onMouseEnter={() => {
-              if (closeTimeout) {
-                clearTimeout(closeTimeout);
-                setCloseTimeout(null);
-              }
-              setShowReactionPicker(true);
-            }}
-            onMouseLeave={() => {
-              const timeout = setTimeout(() => {
-                setShowReactionPicker(false);
-              }, 200);
-              setCloseTimeout(timeout);
-            }}
-          >
-            {(["like", "love", "haha", "angry"] as ReactionType[]).map(
-              (type) => (
-                <button
-                  key={type}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleReaction(type);
-                  }}
-                  className="hover:scale-125 transition-transform cursor-pointer"
-                  title={type.charAt(0).toUpperCase() + type.slice(1)}
-                  type="button"
-                >
-                  {reactionIcons[type]}
-                </button>
-              )
-            )}
-          </div>
-        )}
+        {/* Share Button */}
+        <button
+          className="_feed_inner_timeline_reaction_share _feed_reaction"
+          style={{ flex: 1 }}
+          type="button"
+        >
+          <span className="_feed_inner_timeline_reaction_link">
+            <span>
+              <svg
+                className="_reaction_svg"
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="21"
+                fill="none"
+                viewBox="0 0 24 21"
+              >
+                <path
+                  stroke="#000"
+                  strokeLinejoin="round"
+                  d="M23 10.5L12.917 1v5.429C3.267 6.429 1 13.258 1 20c2.785-3.52 5.248-5.429 11.917-5.429V20L23 10.5z"
+                />
+              </svg>
+              Share
+            </span>
+          </span>
+        </button>
       </div>
 
-      {/* Comment Button */}
-      <button
-        className="_feed_inner_timeline_reaction_comment _feed_reaction"
-        style={{ flex: 1 }}
-      >
-        <span className="_feed_inner_timeline_reaction_link">
-          <span>
-            <svg
-              className="_reaction_svg"
-              xmlns="http://www.w3.org/2000/svg"
-              width="21"
-              height="21"
-              fill="none"
-              viewBox="0 0 21 21"
-            >
-              <path
-                stroke="#000"
-                d="M1 10.5c0-.464 0-.696.009-.893A9 9 0 019.607 1.01C9.804 1 10.036 1 10.5 1v0c.464 0 .696 0 .893.009a9 9 0 018.598 8.598c.009.197.009.429.009.893v6.046c0 1.36 0 2.041-.317 2.535a2 2 0 01-.602.602c-.494.317-1.174.317-2.535.317H10.5c-.464 0-.696 0-.893-.009a9 9 0 01-8.598-8.598C1 11.196 1 10.964 1 10.5v0z"
-              />
-              <path
-                stroke="#000"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6.938 9.313h7.125M10.5 14.063h3.563"
-              />
-            </svg>
-            Comment
-          </span>
-        </span>
-      </button>
+      {/* Global styles */}
+      <style jsx global>{`
+        @keyframes slideUpFade {
+          from {
+            opacity: 0;
+            transform: translateY(12px) scale(0.9);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
 
-      {/* Share Button */}
-      <button
-        className="_feed_inner_timeline_reaction_share _feed_reaction"
-        style={{ flex: 1 }}
-      >
-        <span className="_feed_inner_timeline_reaction_link">
-          <span>
-            <svg
-              className="_reaction_svg"
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="21"
-              fill="none"
-              viewBox="0 0 24 21"
-            >
-              <path
-                stroke="#000"
-                strokeLinejoin="round"
-                d="M23 10.5L12.917 1v5.429C3.267 6.429 1 13.258 1 20c2.785-3.52 5.248-5.429 11.917-5.429V20L23 10.5z"
-              />
-            </svg>
-            Share
-          </span>
-        </span>
-      </button>
-    </div>
+        .reaction-button:hover {
+          transform: scale(1.5);
+        }
+
+        .reaction-button:active {
+          transform: scale(1.35);
+        }
+      `}</style>
+    </>
   );
 }

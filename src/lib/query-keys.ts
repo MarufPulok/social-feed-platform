@@ -19,5 +19,11 @@ export const queryKeys = {
     list: (postId: string, cursor?: string) =>
       [...queryKeys.comments.all, "list", { postId, cursor }] as const,
   },
+  reactions: {
+    all: ["reactions"] as const,
+    users: (targetId: string, targetType: string) =>
+      [...queryKeys.reactions.all, "users", { targetId, targetType }] as const,
+  },
 } as const;
+
 

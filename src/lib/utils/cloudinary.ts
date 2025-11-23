@@ -50,10 +50,12 @@ export async function uploadImage(
   try {
     const options = UPLOAD_OPTIONS[type];
 
-    const result = await cloudinary.uploader.upload(
-      file instanceof Buffer ? `data:image/jpeg;base64,${file.toString("base64")}` : file,
-      options
-    );
+    const fileString: string =
+      file instanceof Buffer
+        ? `data:image/jpeg;base64,${file.toString("base64")}`
+        : (file as string);
+
+    const result = await cloudinary.uploader.upload(fileString, options);
 
     return {
       url: result.secure_url,
@@ -102,4 +104,3 @@ export function getOptimizedImageUrl(
 }
 
 export default cloudinary;
-

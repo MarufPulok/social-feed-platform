@@ -1,11 +1,61 @@
 "use client";
 
+import { useCreateComment } from "@/hooks/useCommentsQuery";
+import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
-export default function CommentForm() {
+const commentSchema = z.object({
+  content: z.string().min(1, "Comment cannot be empty").max(2000),
+});
+
+type CommentFormData = z.infer<typeof commentSchema>;
+
+interface CommentFormProps {
+  postId: string;
+  parentId?: string;
+  onSuccess?: () => void;
+  placeholder?: string;
+}
+
+export default function CommentForm({ 
+  postId, 
+  parentId, 
+  onSuccess,
+  placeholder = "Write a comment"
+}: CommentFormProps) {
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<CommentFormData>({
+    resolver: zodResolver(commentSchema),
+  });
+
+  const createComment = useCreateComment();
+
+  const onSubmit = async (data: CommentFormData) => {
+    try {
+      await createComment.mutateAsync({
+        content: data.content,
+        postId,
+        parentId,
+      });
+
+      toast.success(parentId ? "Reply posted!" : "Comment posted!");
+      reset();
+      onSuccess?.();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to post comment");
+    }
+  };
+
   return (
     <div className="_feed_inner_comment_box">
-      <form className="_feed_inner_comment_box_form">
+      <form className="_feed_inner_comment_box_form" onSubmit={handleSubmit(onSubmit)}>
         <div className="_feed_inner_comment_box_content">
           <div className="_feed_inner_comment_box_content_image">
             <Image
@@ -19,9 +69,22 @@ export default function CommentForm() {
           <div className="_feed_inner_comment_box_content_txt">
             <textarea
               className="form-control _comment_textarea"
-              placeholder="Write a comment"
-              id="floatingTextarea2"
+              placeholder={placeholder}
+              id={`comment-textarea-${postId}-${parentId || 'main'}`}
+              {...register("content")}
+              disabled={isSubmitting}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit(onSubmit)();
+                }
+              }}
             />
+            {errors.content && (
+              <span className="text-danger" style={{ fontSize: '12px' }}>
+                {errors.content.message}
+              </span>
+            )}
           </div>
         </div>
         <div className="_feed_inner_comment_box_icon">

@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
-import { verifyAuth } from "@/lib/middleware/auth.middleware";
-import connectDB from "@/lib/db/connection";
-import Post from "@/lib/models/Post";
 import { ApiResponse } from "@/dtos/response/common.res.dto";
+import connectDB from "@/lib/db/connection";
+import { verifyAuth } from "@/lib/middleware/auth.middleware";
+import Post from "@/lib/models/Post";
 import mongoose from "mongoose";
+import { NextRequest, NextResponse } from "next/server";
 
 /**
  * POST /api/posts/[id]/react
@@ -11,7 +11,7 @@ import mongoose from "mongoose";
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> | { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
     // Verify authentication
@@ -29,8 +29,8 @@ export async function POST(
 
     await connectDB();
 
-    const resolvedParams = await Promise.resolve(params);
-    const postId = resolvedParams.id;
+    const params = await props.params;
+    const postId = params.id;
     const body = await request.json();
     const { type } = body;
 
@@ -79,7 +79,11 @@ export async function POST(
         post.reactions.splice(existingReactionIndex, 1);
       } else {
         // Different reaction - update it
-        post.reactions[existingReactionIndex].type = type as "like" | "haha" | "love" | "angry";
+        post.reactions[existingReactionIndex].type = type as
+          | "like"
+          | "haha"
+          | "love"
+          | "angry";
       }
     } else {
       // New reaction - add it
@@ -97,7 +101,13 @@ export async function POST(
       (r) => r.userId.toString() === userId.toString()
     )?.type;
 
-    return NextResponse.json<ApiResponse<typeof post>>(
+    return NextResponse.json<
+      ApiResponse<
+        ReturnType<typeof post.toJSON> & {
+          currentUserReaction?: "like" | "haha" | "love" | "angry";
+        }
+      >
+    >(
       {
         success: true,
         message: "Reaction updated successfully",
@@ -114,10 +124,10 @@ export async function POST(
       {
         success: false,
         message: "Failed to react to post",
-        error: error instanceof Error ? error.message : "Unknown error occurred",
+        error:
+          error instanceof Error ? error.message : "Unknown error occurred",
       },
       { status: 500 }
     );
   }
 }
-
