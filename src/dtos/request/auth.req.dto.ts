@@ -1,20 +1,41 @@
+import { z } from "zod";
+
 /**
- * Request DTO for user registration
+ * Zod schema for user registration request
  */
-export interface RegisterReqDto {
-  /** User's email address (must be valid email format) */
-  email: string;
-  /** User's password (minimum 6 characters, maximum 128 characters) */
-  password: string;
-}
+export const registerReqSchema = z.object({
+  email: z
+    .string()
+    .min(1, "Email is required")
+    .email("Please provide a valid email address")
+    .toLowerCase()
+    .trim(),
+  password: z
+    .string()
+    .min(6, "Password must be at least 6 characters long")
+    .max(128, "Password must be less than 128 characters"),
+});
+
 /**
- * Request DTO for user login
+ * Zod schema for user login request
  */
-export interface LoginReqDto {
-  /** User's email address */
-  email: string;
-  /** User's password */
-  password: string;
-  /** Optional: If true, extends cookie expiration to 7 days */
-  rememberMe?: boolean;
-}
+export const loginReqSchema = z.object({
+  email: z
+    .string()
+    .min(1, "Email is required")
+    .email("Please provide a valid email address")
+    .toLowerCase()
+    .trim(),
+  password: z.string().min(1, "Password is required"),
+  rememberMe: z.boolean().optional(),
+});
+
+/**
+ * Request DTO for user registration (inferred from zod schema)
+ */
+export type RegisterReqDto = z.infer<typeof registerReqSchema>;
+
+/**
+ * Request DTO for user login (inferred from zod schema)
+ */
+export type LoginReqDto = z.infer<typeof loginReqSchema>;

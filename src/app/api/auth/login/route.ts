@@ -1,15 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
+import { LoginReqDto } from "@/dtos/request/auth.req.dto";
+import { LoginResDto } from "@/dtos/response/auth.res.dto";
+import { ApiResponse } from "@/dtos/response/common.res.dto";
 import connectDB from "@/lib/db/connection";
 import User from "@/lib/models/User";
-import { LoginReqDto } from "@/dtos/request/auth.req.dto";
-import { ApiResponse } from "@/dtos/response/common.res.dto";
-import { LoginResDto } from "@/dtos/response/auth.res.dto";
-import { generateTokenPair } from "@/lib/utils/jwt";
 import { setAuthCookies } from "@/lib/utils/cookies";
+import { generateTokenPair } from "@/lib/utils/jwt";
+import { NextRequest, NextResponse } from "next/server";
 
 const EMAIL_REGEX = /^\S+@\S+\.\S+$/;
 
-function validateLoginRequest(body: unknown): { isValid: boolean; error?: string } {
+function validateLoginRequest(body: unknown): {
+  isValid: boolean;
+  error?: string;
+} {
   if (!body || typeof body !== "object") {
     return { isValid: false, error: "Request body is required" };
   }
@@ -45,7 +48,7 @@ export async function POST(request: NextRequest) {
     let body: unknown;
     try {
       body = await request.json();
-    } catch (error) {
+    } catch {
       return NextResponse.json<ApiResponse>(
         {
           success: false,
@@ -74,7 +77,9 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     // Find user and include password field (needed for password comparison)
-    const user = await User.findOne({ email: normalizedEmail }).select("+password");
+    const user = await User.findOne({ email: normalizedEmail }).select(
+      "+password"
+    );
 
     if (!user) {
       // Return generic error to prevent email enumeration
@@ -172,8 +177,10 @@ export async function POST(request: NextRequest) {
 
     // Handle specific error cases
     if (error && typeof error === "object" && "name" in error) {
-      if (error.name === "ValidationError") {
-        const validationError = error as { errors: Record<string, { message: string }> };
+      if (error.name === "ValidationError" && "errors" in error) {
+        const validationError = error as {
+          errors: Record<string, { message: string }>;
+        };
         const firstError = Object.values(validationError.errors)[0];
         return NextResponse.json<ApiResponse>(
           {
@@ -194,4 +201,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

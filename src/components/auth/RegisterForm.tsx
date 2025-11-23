@@ -1,7 +1,63 @@
+"use client";
+
+import { registerReqSchema } from "@/dtos/request/auth.req.dto";
+import { useRegister } from "@/hooks/useAuthQuery";
+import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+
+const registerFormSchema = registerReqSchema
+  .extend({
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+    agreeToTerms: z.boolean().refine((val) => val === true, {
+      message: "You must agree to terms & conditions",
+    }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+type RegisterFormData = z.infer<typeof registerFormSchema>;
 
 export default function RegisterForm() {
+  const router = useRouter();
+  const registerMutation = useRegister();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerFormSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      confirmPassword: "",
+      agreeToTerms: false,
+    },
+  });
+
+  const onSubmit = async (data: RegisterFormData) => {
+    try {
+      await registerMutation.mutateAsync({
+        email: data.email,
+        password: data.password,
+      });
+      toast.success("Registration successful!");
+      router.push("/feed");
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Registration failed. Please try again.";
+      toast.error(errorMessage);
+    }
+  };
   return (
     <section className="_social_registration_wrapper _layout_main_wrapper">
       <div className="_shape_one">
@@ -95,6 +151,7 @@ export default function RegisterForm() {
                 <button
                   type="button"
                   className="_social_registration_content_btn _mar_b40"
+                  disabled
                 >
                   <Image
                     src="/svg/google.svg"
@@ -109,7 +166,10 @@ export default function RegisterForm() {
                   {" "}
                   <span>Or</span>
                 </div>
-                <form className="_social_registration_form">
+                <form
+                  className="_social_registration_form"
+                  onSubmit={handleSubmit(onSubmit)}
+                >
                   <div className="row">
                     <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12">
                       <div className="_social_registration_form_input _mar_b14">
@@ -118,8 +178,17 @@ export default function RegisterForm() {
                         </label>
                         <input
                           type="email"
-                          className="form-control _social_registration_input"
+                          className={`form-control _social_registration_input ${
+                            errors.email ? "border-red-500" : ""
+                          }`}
+                          {...register("email")}
+                          disabled={registerMutation.isPending}
                         />
+                        {errors.email && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {errors.email.message}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12">
@@ -129,8 +198,17 @@ export default function RegisterForm() {
                         </label>
                         <input
                           type="password"
-                          className="form-control _social_registration_input"
+                          className={`form-control _social_registration_input ${
+                            errors.password ? "border-red-500" : ""
+                          }`}
+                          {...register("password")}
+                          disabled={registerMutation.isPending}
                         />
+                        {errors.password && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {errors.password.message}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12">
@@ -140,8 +218,17 @@ export default function RegisterForm() {
                         </label>
                         <input
                           type="password"
-                          className="form-control _social_registration_input"
+                          className={`form-control _social_registration_input ${
+                            errors.confirmPassword ? "border-red-500" : ""
+                          }`}
+                          {...register("confirmPassword")}
+                          disabled={registerMutation.isPending}
                         />
+                        {errors.confirmPassword && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {errors.confirmPassword.message}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -149,29 +236,39 @@ export default function RegisterForm() {
                     <div className="col-lg-12 col-xl-12 col-md-12 col-sm-12">
                       <div className="form-check _social_registration_form_check">
                         <input
-                          className="form-check-input _social_registration_form_check_input"
-                          type="radio"
-                          name="flexRadioDefault"
-                          id="flexRadioDefault2"
-                          defaultChecked
+                          className={`form-check-input _social_registration_form_check_input ${
+                            errors.agreeToTerms ? "border-red-500" : ""
+                          }`}
+                          type="checkbox"
+                          id="agreeToTerms"
+                          {...register("agreeToTerms")}
+                          disabled={registerMutation.isPending}
                         />
                         <label
                           className="form-check-label _social_registration_form_check_label"
-                          htmlFor="flexRadioDefault2"
+                          htmlFor="agreeToTerms"
                         >
                           I agree to terms & conditions
                         </label>
                       </div>
+                      {errors.agreeToTerms && (
+                        <p className="text-red-500 text-sm mt-1">
+                          {errors.agreeToTerms.message}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div className="row">
                     <div className="col-lg-12 col-md-12 col-xl-12 col-sm-12">
                       <div className="_social_registration_form_btn _mar_t40 _mar_b60">
                         <button
-                          type="button"
+                          type="submit"
                           className="_social_registration_form_btn_link _btn1"
+                          disabled={registerMutation.isPending}
                         >
-                          Login now
+                          {registerMutation.isPending
+                            ? "Registering..."
+                            : "Register now"}
                         </button>
                       </div>
                     </div>
@@ -181,8 +278,8 @@ export default function RegisterForm() {
                   <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12">
                     <div className="_social_registration_bottom_txt">
                       <p className="_social_registration_bottom_txt_para">
-                        Dont have an account?{" "}
-                        <Link href="#0">Create New Account</Link>
+                        Already have an account?{" "}
+                        <Link href="/login">Login here</Link>
                       </p>
                     </div>
                   </div>

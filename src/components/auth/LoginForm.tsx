@@ -1,7 +1,52 @@
+"use client";
+
+import { loginReqSchema } from "@/dtos/request/auth.req.dto";
+import { useLogin } from "@/hooks/useAuthQuery";
+import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+
+const loginFormSchema = loginReqSchema;
+type LoginFormData = z.infer<typeof loginFormSchema>;
 
 export default function LoginForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const loginMutation = useLogin();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginFormSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      rememberMe: false,
+    },
+  });
+
+  const onSubmit = async (data: LoginFormData) => {
+    try {
+      await loginMutation.mutateAsync(data);
+      toast.success("Login successful!");
+
+      const redirectTo = searchParams.get("redirect") || "/feed";
+      router.push(redirectTo);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Login failed. Please try again.";
+      toast.error(errorMessage);
+    }
+  };
+
   return (
     <section className="_social_login_wrapper _layout_main_wrapper">
       <div className="_shape_one">
@@ -88,6 +133,7 @@ export default function LoginForm() {
                 <button
                   type="button"
                   className="_social_login_content_btn _mar_b40"
+                  disabled
                 >
                   <Image
                     src="/svg/google.svg"
@@ -102,7 +148,10 @@ export default function LoginForm() {
                   {" "}
                   <span>Or</span>
                 </div>
-                <form className="_social_login_form">
+                <form
+                  className="_social_login_form"
+                  onSubmit={handleSubmit(onSubmit)}
+                >
                   <div className="row">
                     <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12">
                       <div className="_social_login_form_input _mar_b14">
@@ -111,8 +160,17 @@ export default function LoginForm() {
                         </label>
                         <input
                           type="email"
-                          className="form-control _social_login_input"
+                          className={`form-control _social_login_input ${
+                            errors.email ? "border-red-500" : ""
+                          }`}
+                          {...register("email")}
+                          disabled={loginMutation.isPending}
                         />
+                        {errors.email && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {errors.email.message}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12">
@@ -122,8 +180,17 @@ export default function LoginForm() {
                         </label>
                         <input
                           type="password"
-                          className="form-control _social_login_input"
+                          className={`form-control _social_login_input ${
+                            errors.password ? "border-red-500" : ""
+                          }`}
+                          {...register("password")}
+                          disabled={loginMutation.isPending}
                         />
+                        {errors.password && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {errors.password.message}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -132,14 +199,14 @@ export default function LoginForm() {
                       <div className="form-check _social_login_form_check">
                         <input
                           className="form-check-input _social_login_form_check_input"
-                          type="radio"
-                          name="flexRadioDefault"
-                          id="flexRadioDefault2"
-                          defaultChecked
+                          type="checkbox"
+                          id="rememberMe"
+                          {...register("rememberMe")}
+                          disabled={loginMutation.isPending}
                         />
                         <label
                           className="form-check-label _social_login_form_check_label"
-                          htmlFor="flexRadioDefault2"
+                          htmlFor="rememberMe"
                         >
                           Remember me
                         </label>
@@ -157,10 +224,13 @@ export default function LoginForm() {
                     <div className="col-lg-12 col-md-12 col-xl-12 col-sm-12">
                       <div className="_social_login_form_btn _mar_t40 _mar_b60">
                         <button
-                          type="button"
+                          type="submit"
                           className="_social_login_form_btn_link _btn1"
+                          disabled={loginMutation.isPending}
                         >
-                          Login now
+                          {loginMutation.isPending
+                            ? "Logging in..."
+                            : "Login now"}
                         </button>
                       </div>
                     </div>
@@ -170,8 +240,8 @@ export default function LoginForm() {
                   <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12">
                     <div className="_social_login_bottom_txt">
                       <p className="_social_login_bottom_txt_para">
-                        Dont have an account?{" "}
-                        <Link href="#0">Create New Account</Link>
+                        Don&apos;t have an account?{" "}
+                        <Link href="/register">Create New Account</Link>
                       </p>
                     </div>
                   </div>
@@ -184,4 +254,3 @@ export default function LoginForm() {
     </section>
   );
 }
-

@@ -214,3 +214,14 @@ export function requiresAuth(pathname: string): boolean {
 
   return false;
 }
+
+/**
+ * Check if route is an auth route (login, register, etc.)
+ * These routes should redirect authenticated users to feed
+ */
+export function isAuthRoute(pathname: string): boolean {
+  const authRoutes = ["/login", "/register"];
+  return authRoutes.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
+  );
+}

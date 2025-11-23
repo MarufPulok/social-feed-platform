@@ -4,22 +4,32 @@ import {
   authenticateRequest,
   createUnauthorizedResponse,
   requiresAuth,
+  isAuthRoute,
 } from "@/lib/middleware/auth.middleware";
 
 /**
- * Next.js middleware for protecting routes
+ * Next.js middleware for protecting routes and redirecting authenticated users
  * Runs on every request matching the config matcher
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Authenticate the request (try to get user info)
+  const authResult = await authenticateRequest(request);
+  const isAuthenticated = !!authResult;
+
+  // Handle auth routes (login, register) - redirect authenticated users to feed
+  if (isAuthRoute(pathname)) {
+    if (isAuthenticated) {
+      return NextResponse.redirect(new URL("/feed", request.url));
+    }
+    return NextResponse.next();
+  }
+
   // Check if this route requires authentication
   if (!requiresAuth(pathname)) {
     return NextResponse.next();
   }
-
-  // Authenticate the request
-  const authResult = await authenticateRequest(request);
 
   // Handle API routes
   if (pathname.startsWith("/api/")) {
@@ -35,7 +45,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Handle page routes (redirect to login if not authenticated)
+  // Handle protected page routes (redirect to login if not authenticated)
   if (pathname.startsWith("/feed") || pathname.startsWith("/(protected)")) {
     if (!authResult) {
       const loginUrl = new URL("/login", request.url);
@@ -64,6 +74,8 @@ export const config = {
     "/api/:path*",
     "/feed/:path*",
     "/(protected)/:path*",
+    "/login",
+    "/register",
   ],
 };
 

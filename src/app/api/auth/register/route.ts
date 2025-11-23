@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
 
     // Handle Mongoose validation errors
     if (error && typeof error === "object" && "name" in error) {
-      if (error.name === "ValidationError") {
+      if (error.name === "ValidationError" && "errors" in error) {
         const validationError = error as { errors: Record<string, { message: string }> };
         const firstError = Object.values(validationError.errors)[0];
         return NextResponse.json<ApiResponse>(

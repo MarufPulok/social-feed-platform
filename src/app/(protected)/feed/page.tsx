@@ -1,3 +1,5 @@
+"use client";
+
 import ThemeSwitcher from "@/components/feed/layout/ThemeSwitcher";
 import Header from "@/components/feed/navigation/Header";
 import MobileBottomNav from "@/components/feed/navigation/MobileBottomNav";

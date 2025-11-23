@@ -1,14 +1,19 @@
 "use client";
 
 import { useAuth } from "@/hooks/useAuthQuery";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 
-export default function ProtectedLayout({
-  children,
-}: Readonly<{
+interface ProtectedRouteProps {
   children: React.ReactNode;
-}>) {
+  fallback?: React.ReactNode;
+}
+
+/**
+ * Client-side route protection component
+ * Redirects unauthenticated users to login page
+ */
+export function ProtectedRoute({ children, fallback }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -22,9 +27,11 @@ export default function ProtectedLayout({
 
   if (isLoading) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
+      fallback || (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      )
     );
   }
 
@@ -32,5 +39,6 @@ export default function ProtectedLayout({
     return null;
   }
 
-  return <div className="min-h-screen w-full">{children}</div>;
+  return <>{children}</>;
 }
+
