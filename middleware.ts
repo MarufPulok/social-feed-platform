@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import {
-  authenticateRequest,
+  authenticateRequestEdge,
   createUnauthorizedResponse,
   requiresAuth,
   isAuthRoute,
-} from "@/lib/middleware/auth.middleware";
+} from "@/lib/middleware/auth.middleware.edge";
 
 /**
  * Next.js middleware for protecting routes and redirecting authenticated users
@@ -14,8 +14,8 @@ import {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Authenticate the request (try to get user info)
-  const authResult = await authenticateRequest(request);
+  // Authenticate the request (Edge-compatible, only verifies JWT tokens)
+  const authResult = await authenticateRequestEdge(request);
   const isAuthenticated = !!authResult;
 
   // Handle auth routes (login, register) - redirect authenticated users to feed
