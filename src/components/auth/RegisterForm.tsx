@@ -13,6 +13,8 @@ import { z } from "zod";
 
 const registerFormSchema = registerReqSchema
   .extend({
+    firstName: z.string().min(2, "First name must be at least 2 characters"),
+    lastName: z.string().min(2, "Last name must be at least 2 characters"),
     confirmPassword: z.string().min(1, "Please confirm your password"),
     agreeToTerms: z.boolean().refine((val) => val === true, {
       message: "You must agree to terms & conditions",
@@ -57,6 +59,8 @@ export default function RegisterForm() {
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerFormSchema),
     defaultValues: {
+      firstName: "",
+      lastName: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -67,6 +71,8 @@ export default function RegisterForm() {
   const onSubmit = async (data: RegisterFormData) => {
     try {
       await registerMutation.mutateAsync({
+        firstName: data.firstName,
+        lastName: data.lastName,
         email: data.email,
         password: data.password,
       });
@@ -197,6 +203,46 @@ export default function RegisterForm() {
                   onSubmit={handleSubmit(onSubmit)}
                 >
                   <div className="row">
+                    <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12">
+                      <div className="_social_registration_form_input _mar_b14">
+                        <label className="_social_registration_label _mar_b8">
+                          First Name
+                        </label>
+                        <input
+                          type="text"
+                          className={`form-control _social_registration_input ${
+                            errors.firstName ? "border-red-500" : ""
+                          }`}
+                          {...register("firstName")}
+                          disabled={registerMutation.isPending}
+                        />
+                        {errors.firstName && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {errors.firstName.message}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12">
+                      <div className="_social_registration_form_input _mar_b14">
+                        <label className="_social_registration_label _mar_b8">
+                          Last Name
+                        </label>
+                        <input
+                          type="text"
+                          className={`form-control _social_registration_input ${
+                            errors.lastName ? "border-red-500" : ""
+                          }`}
+                          {...register("lastName")}
+                          disabled={registerMutation.isPending}
+                        />
+                        {errors.lastName && (
+                          <p className="text-red-500 text-sm mt-1">
+                            {errors.lastName.message}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                     <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12">
                       <div className="_social_registration_form_input _mar_b14">
                         <label className="_social_registration_label _mar_b8">

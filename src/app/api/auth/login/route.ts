@@ -154,6 +154,8 @@ export async function POST(request: NextRequest) {
         data: {
           user: {
             id: user._id.toString(),
+            firstName: user.firstName,
+            lastName: user.lastName,
             email: user.email,
             isEmailVerified: user.isEmailVerified,
             avatar: user.avatar,

@@ -7,6 +7,8 @@ import PostDropdownMenu from "./PostDropdownMenu";
 interface PostHeaderProps {
   author: {
     _id: string;
+    firstName: string;
+    lastName: string;
     email: string;
     avatar?: string;
   };
@@ -15,6 +17,8 @@ interface PostHeaderProps {
 }
 
 export default function PostHeader({ author, createdAt, privacy }: PostHeaderProps) {
+  const displayName = `${author.firstName} ${author.lastName}`;
+  
   return (
     <div className="_feed_inner_timeline_post_top">
       <div className="_feed_inner_timeline_post_box">
@@ -22,7 +26,7 @@ export default function PostHeader({ author, createdAt, privacy }: PostHeaderPro
           {author.avatar ? (
             <Image
               src={author.avatar}
-              alt={author.email}
+              alt={displayName}
               className="_post_img"
               width={50}
               height={50}
@@ -44,12 +48,12 @@ export default function PostHeader({ author, createdAt, privacy }: PostHeaderPro
                 color: "#4b5563",
               }}
             >
-              {author.email.charAt(0).toUpperCase()}
+              {author.firstName?.charAt(0).toUpperCase() || author.email.charAt(0).toUpperCase()}
             </div>
           )}
         </div>
         <div className="_feed_inner_timeline_post_box_txt">
-          <h4 className="_feed_inner_timeline_post_box_title">{author.email}</h4>
+          <h4 className="_feed_inner_timeline_post_box_title">{displayName}</h4>
           <p className="_feed_inner_timeline_post_box_para">
             {createdAt} . <Link href="#0" className="capitalize">{privacy}</Link>
           </p>

@@ -3,6 +3,8 @@ import mongoose, { Document, Model, Schema } from "mongoose";
 
 export interface IUser extends Document {
   // Authentication
+  firstName: string;
+  lastName: string;
   email: string;
   password?: string; // Optional for OAuth users
   isEmailVerified: boolean;
@@ -16,6 +18,9 @@ export interface IUser extends Document {
 
   // Profile Information (optional, can be added later)
   avatar?: string;
+  bio?: string;
+  location?: string;
+  website?: string;
 
   // Social Features
   followers: mongoose.Types.ObjectId[];
@@ -50,6 +55,20 @@ export interface IUser extends Document {
 const userSchema = new Schema<IUser>(
   {
     // Authentication
+    firstName: {
+      type: String,
+      required: [true, "First name is required"],
+      trim: true,
+      minlength: [2, "First name must be at least 2 characters"],
+      maxlength: [50, "First name must be less than 50 characters"],
+    },
+    lastName: {
+      type: String,
+      required: [true, "Last name is required"],
+      trim: true,
+      minlength: [2, "Last name must be at least 2 characters"],
+      maxlength: [50, "Last name must be less than 50 characters"],
+    },
     email: {
       type: String,
       required: [true, "Email is required"],

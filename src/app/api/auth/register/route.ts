@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { RegisterReqDto } from "@/dtos/request/auth.req.dto";
+import { RegisterResDto } from "@/dtos/response/auth.res.dto";
+import { ApiResponse } from "@/dtos/response/common.res.dto";
 import connectDB from "@/lib/db/connection";
 import User from "@/lib/models/User";
-import { RegisterReqDto } from "@/dtos/request/auth.req.dto";
-import { ApiResponse } from "@/dtos/response/common.res.dto";
-import { RegisterResDto } from "@/dtos/response/auth.res.dto";
-import { generateTokenPair } from "@/lib/utils/jwt";
 import { setAuthCookies } from "@/lib/utils/cookies";
+import { generateTokenPair } from "@/lib/utils/jwt";
+import { NextRequest, NextResponse } from "next/server";
 
 const EMAIL_REGEX = /^\S+@\S+\.\S+$/;
 
@@ -14,7 +14,15 @@ function validateRegisterRequest(body: unknown): { isValid: boolean; error?: str
     return { isValid: false, error: "Request body is required" };
   }
 
-  const { email, password } = body as Partial<RegisterReqDto>;
+  const { firstName, lastName, email, password } = body as Partial<RegisterReqDto>;
+
+  if (!firstName || typeof firstName !== "string" || firstName.trim().length < 2) {
+    return { isValid: false, error: "First name must be at least 2 characters" };
+  }
+
+  if (!lastName || typeof lastName !== "string" || lastName.trim().length < 2) {
+    return { isValid: false, error: "Last name must be at least 2 characters" };
+  }
 
   if (!email || typeof email !== "string" || email.trim().length === 0) {
     return { isValid: false, error: "Email is required" };
@@ -67,7 +75,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email, password } = body as RegisterReqDto;
+    const { firstName, lastName, email, password } = body as RegisterReqDto;
     const normalizedEmail = email.trim().toLowerCase();
 
     // Connect to database
@@ -87,6 +95,8 @@ export async function POST(request: NextRequest) {
 
     // Create new user
     const user = await User.create({
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
       email: normalizedEmail,
       password,
       authProvider: "local",
@@ -105,6 +115,8 @@ export async function POST(request: NextRequest) {
         data: {
           user: {
             id: user._id.toString(),
+            firstName: user.firstName,
+            lastName: user.lastName,
             email: user.email,
             isEmailVerified: user.isEmailVerified,
             avatar: user.avatar,

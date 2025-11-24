@@ -37,8 +37,8 @@ export default function ProfileDropdown() {
     return null;
   }
 
-  // Get display name from email (part before @)
-  const displayName = user.email.split("@")[0];
+  // Get display name
+  const displayName = `${user.firstName} ${user.lastName}`;
 
   return (
     <div className="_header_nav_profile">
@@ -81,7 +81,7 @@ export default function ProfileDropdown() {
               color: "#4b5563",
             }}
           >
-            {user.email.charAt(0).toUpperCase()}
+            {user.firstName?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
           </div>
         )}
       </div>
@@ -142,7 +142,7 @@ export default function ProfileDropdown() {
                   color: "#4b5563",
                 }}
               >
-                {user.email.charAt(0).toUpperCase()}
+                {user.firstName?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
               </div>
             )}
           </div>

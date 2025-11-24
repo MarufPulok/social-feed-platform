@@ -83,13 +83,15 @@ export default function CommentItem({ comment, postId }: CommentItemProps) {
     );
   }
 
+  const displayName = `${comment.author.firstName} ${comment.author.lastName}`;
+
   return (
     <div className="_comment_main">
       <div className="_comment_image">
         <Link href="/profile" className="_comment_image_link">
           <Image
             src={comment.author.avatar || "/assets/images/txt_img.png"}
-            alt={comment.author.email}
+            alt={displayName}
             className="_comment_img1"
             width={40}
             height={40}
@@ -101,7 +103,7 @@ export default function CommentItem({ comment, postId }: CommentItemProps) {
           <div className="_comment_details_top">
             <div className="_comment_name">
               <Link href="/profile">
-                <h4 className="_comment_name_title">{comment.author.email}</h4>
+                <h4 className="_comment_name_title">{displayName}</h4>
               </Link>
             </div>
           </div>

@@ -74,14 +74,14 @@ export async function GET(request: NextRequest) {
         }
 
         const userReaction = post.reactions.find((r: {
-          userId: { _id: string } | mongoose.Types.ObjectId;
+          userId: { _id: string | mongoose.Types.ObjectId } | mongoose.Types.ObjectId;
           type: string;
         }) => {
           // Handle populated userId (object with _id) vs unpopulated (ObjectId)
           const reactionUserId =
-            typeof r.userId === "object" && "_id" in r.userId
-              ? r.userId._id.toString()
-              : r.userId.toString();
+            r.userId instanceof mongoose.Types.ObjectId
+              ? r.userId.toString()
+              : r.userId._id.toString();
           return reactionUserId === userId;
         });
 

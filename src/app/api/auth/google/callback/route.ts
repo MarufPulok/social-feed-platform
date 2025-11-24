@@ -1,9 +1,9 @@
-import { OAuth2Client } from "google-auth-library";
-import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/db/connection";
 import User from "@/lib/models/User";
 import { setAuthCookies } from "@/lib/utils/cookies";
 import { generateTokenPair } from "@/lib/utils/jwt";
+import { OAuth2Client } from "google-auth-library";
+import { NextRequest, NextResponse } from "next/server";
 
 /**
  * GET /api/auth/google/callback
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { sub: googleId, email, name, picture } = payload;
+    const { sub: googleId, email, name, picture, given_name, family_name } = payload;
 
     if (!email) {
       console.error("No email in Google account");
@@ -79,6 +79,20 @@ export async function GET(request: NextRequest) {
       $or: [{ email: email.toLowerCase() }, { googleId }],
     });
 
+    // Determine first and last name
+    let firstName = given_name || "";
+    let lastName = family_name || "";
+
+    if (!firstName && name) {
+      const nameParts = name.split(" ");
+      firstName = nameParts[0];
+      lastName = nameParts.slice(1).join(" ") || "";
+    }
+    
+    // Fallback if still empty (though Google usually provides name)
+    if (!firstName) firstName = "User";
+    if (!lastName) lastName = "";
+
     if (user) {
       // Update existing user with Google ID if they don't have it
       if (!user.googleId) {
@@ -86,6 +100,14 @@ export async function GET(request: NextRequest) {
         user.authProvider = "google";
         user.isEmailVerified = true; // Google emails are verified
         if (picture) user.avatar = picture;
+      }
+
+      // Ensure names are present (backfill for existing users)
+      if (!user.firstName) user.firstName = firstName;
+      if (!user.lastName) user.lastName = lastName;
+      
+      // Save changes if modified
+      if (user.isModified()) {
         await user.save();
       }
       
@@ -99,6 +121,8 @@ export async function GET(request: NextRequest) {
       // Create new user
       user = new User({
         email: email.toLowerCase(),
+        firstName,
+        lastName,
         googleId,
         authProvider: "google",
         isEmailVerified: true, // Google emails are verified

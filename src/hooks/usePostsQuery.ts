@@ -19,12 +19,16 @@ export interface Post {
   privacy: "public" | "private";
   author: {
     _id: string;
+    firstName: string;
+    lastName: string;
     email: string;
     avatar?: string;
   };
   reactions: {
     userId: {
       _id: string;
+      firstName: string;
+      lastName: string;
       email: string;
       avatar?: string;
     };
