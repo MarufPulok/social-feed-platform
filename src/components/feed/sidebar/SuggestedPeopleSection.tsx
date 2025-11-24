@@ -1,10 +1,7 @@
 "use client";
 
 import UserAvatar from "@/components/feed/UserAvatar";
-import { AvatarFallback } from "@/components/ui/avatar";
 import { useFollowUser, useSuggestedUsers } from "@/hooks/useUsersQuery";
-import { User } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 
 export default function SuggestedPeopleSection() {
@@ -41,7 +38,7 @@ export default function SuggestedPeopleSection() {
           <p>No suggestions available</p>
         </div>
       ) : (
-        suggestedUsers.slice(0, 3).map((user, index) => {
+        suggestedUsers.slice(0, 3).map((user) => {
           const isFollowing = followMutation.isPending && followMutation.variables === user._id;
           
           return (
@@ -49,7 +46,7 @@ export default function SuggestedPeopleSection() {
               <div className="_left_inner_area_suggest_info_box">
                 <div className="_left_inner_area_suggest_info_image">
                   <Link href="/profile">
-                    <UserAvatar user={user} size={50} />
+                    <UserAvatar user={user} size={50} className="_info_img" />
                   </Link>
                 </div>
                 <div className="_left_inner_area_suggest_info_txt">
@@ -66,11 +63,7 @@ export default function SuggestedPeopleSection() {
                   onClick={() => handleFollow(user._id)}
                   className="_info_link"
                   disabled={isFollowing}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    cursor: isFollowing ? "not-allowed" : "pointer",
-                  }}
+                  style={{ border: 'none', background: 'none', cursor: isFollowing ? 'not-allowed' : 'pointer' }}
                 >
                   {isFollowing ? "Connecting..." : "Connect"}
                 </button>

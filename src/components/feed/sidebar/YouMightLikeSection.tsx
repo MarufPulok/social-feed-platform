@@ -1,7 +1,7 @@
 "use client";
 
+import UserAvatar from "@/components/feed/UserAvatar";
 import { useFollowUser, useSuggestedUsers } from "@/hooks/useUsersQuery";
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -55,37 +55,7 @@ export default function YouMightLikeSection() {
               <div className="_right_inner_area_info_box">
                 <div className="_right_inner_area_info_box_image">
                   <Link href="/profile">
-                    {user.avatar ? (
-                      <Image
-                        src={user.avatar}
-                        alt={`${user.firstName} ${user.lastName}`}
-                        className="_ppl_img"
-                        width={50}
-                        height={50}
-                        style={{
-                          borderRadius: "50%",
-                          objectFit: "cover",
-                        }}
-                      />
-                    ) : (
-                      <div
-                        className="_ppl_img"
-                        style={{
-                          width: "50px",
-                          height: "50px",
-                          borderRadius: "50%",
-                          background: "#e5e7eb",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: "18px",
-                          fontWeight: "600",
-                          color: "#4b5563",
-                        }}
-                      >
-                        {user.firstName?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
-                      </div>
-                    )}
+                    <UserAvatar user={user} size={50} className="_ppl_img" />
                   </Link>
                 </div>
                 <div className="_right_inner_area_info_box_txt">

@@ -2,7 +2,6 @@
 
 import UserAvatar from "@/components/feed/UserAvatar";
 import { useFollowingUsers, useUnfollowUser } from "@/hooks/useUsersQuery";
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -82,26 +81,11 @@ export default function FriendsSection() {
               <div
                 key={friend._id}
                 className="_feed_right_inner_area_card_ppl"
-                style={{ position: "relative" }}
               >
                 <div className="_feed_right_inner_area_card_ppl_box">
                   <div className="_feed_right_inner_area_card_ppl_image">
                     <Link href="/profile">
-                      {friend.avatar ? (
-                        <Image
-                          src={friend.avatar}
-                          alt={`${friend.firstName} ${friend.lastName}`}
-                          className="_box_ppl_img"
-                          width={50}
-                          height={50}
-                          style={{
-                            borderRadius: "50%",
-                            objectFit: "cover",
-                          }}
-                        />
-                      ) : (
-                        <UserAvatar user={friend} size={50} className="_box_ppl_img" />
-                      )}
+                      <UserAvatar user={friend} size={50} className="_box_ppl_img" />
                     </Link>
                   </div>
                   <div className="_feed_right_inner_area_card_ppl_txt">
@@ -123,7 +107,6 @@ export default function FriendsSection() {
                       cursor: isUnfollowing ? "not-allowed" : "pointer",
                       fontSize: "12px",
                       color: "#666",
-                      padding: "4px 8px",
                     }}
                     title="Unfollow"
                   >
