@@ -109,7 +109,7 @@ export default function ReactionsModal({
                         {user.avatar ? (
                           <Image
                             src={user.avatar}
-                            alt={user.email}
+                            alt={`${user.firstName} ${user.lastName}`}
                             width={52}
                             height={52}
                             className="rounded-full object-cover ring-2 ring-gray-100 group-hover:ring-4 transition-all duration-300"
@@ -129,7 +129,7 @@ export default function ReactionsModal({
                               color: "#4b5563",
                             }}
                           >
-                            {user.email.charAt(0).toUpperCase()}
+                            {user.firstName?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
                           </div>
                         )}
                         {/* Enhanced Reaction badge */}
@@ -163,8 +163,9 @@ export default function ReactionsModal({
                         className="font-bold text-gray-900 group-hover:text-gray-700 block truncate transition-colors duration-200"
                         style={{ fontSize: "15px" }}
                       >
-                        {user.email}
+                        {user.firstName} {user.lastName}
                       </Link>
+                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
                       {userReactionType && (
                         <p 
                           className="text-xs font-semibold mt-0.5 capitalize"

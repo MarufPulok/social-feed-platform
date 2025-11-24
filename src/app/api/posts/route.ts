@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate("author", "email avatar")
+      .populate("author", "firstName lastName email avatar")
       .populate({
         path: "reactions.userId",
         select: "email avatar",
@@ -189,7 +189,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Populate author details
-    await post.populate("author", "email avatar");
+    await post.populate("author", "firstName lastName email avatar");
 
     return NextResponse.json<ApiResponse<typeof post>>(
       {

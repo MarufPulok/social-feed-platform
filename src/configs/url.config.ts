@@ -30,5 +30,8 @@ export const API_ENDPOINTS = {
   UPLOAD: {
     IMAGE: `${API_BASE_URL}/upload`,
   },
+  USERS: {
+    SUGGESTED: `${API_BASE_URL}/users/suggested`,
+  },
 };
 

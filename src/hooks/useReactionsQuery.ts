@@ -15,10 +15,10 @@ export type ReactionType = "like" | "haha" | "love" | "angry";
  */
 export interface ReactionUsers {
   reactions: {
-    like: Array<{ _id: string; email: string; avatar?: string }>;
-    haha: Array<{ _id: string; email: string; avatar?: string }>;
-    love: Array<{ _id: string; email: string; avatar?: string }>;
-    angry: Array<{ _id: string; email: string; avatar?: string }>;
+    like: Array<{ _id: string; firstName: string; lastName: string; email: string; avatar?: string }>;
+    haha: Array<{ _id: string; firstName: string; lastName: string; email: string; avatar?: string }>;
+    love: Array<{ _id: string; firstName: string; lastName: string; email: string; avatar?: string }>;
+    angry: Array<{ _id: string; firstName: string; lastName: string; email: string; avatar?: string }>;
   };
   summary: {
     total: number;

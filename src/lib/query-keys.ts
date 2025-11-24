@@ -24,6 +24,10 @@ export const queryKeys = {
     users: (targetId: string, targetType: string) =>
       [...queryKeys.reactions.all, "users", { targetId, targetType }] as const,
   },
+  users: {
+    all: ["users"] as const,
+    suggested: () => [...queryKeys.users.all, "suggested"] as const,
+  },
 } as const;
 
 

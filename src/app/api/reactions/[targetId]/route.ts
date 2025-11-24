@@ -38,12 +38,12 @@ export async function GET(
       targetType === "post"
         ? await Post.findById(targetId).populate({
             path: "reactions.userId",
-            select: "email avatar",
+            select: "firstName lastName email avatar",
             strictPopulate: false,
           })
         : await Comment.findById(targetId).populate({
             path: "reactions.userId",
-            select: "email avatar",
+            select: "firstName lastName email avatar",
             strictPopulate: false,
           });
 
@@ -69,7 +69,7 @@ export async function GET(
     // Group reactions by type
     const groupedReactions: Record<
       string,
-      Array<{ _id: string; email: string; avatar?: string }>
+      Array<{ _id: string; firstName: string; lastName: string; email: string; avatar?: string }>
     > = {
       like: [],
       haha: [],
@@ -86,6 +86,8 @@ export async function GET(
       ) {
         const populatedUserId = reaction.userId as unknown as {
           _id: string;
+          firstName: string;
+          lastName: string;
           email: string;
           avatar?: string;
         };

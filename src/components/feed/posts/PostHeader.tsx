@@ -18,7 +18,7 @@ interface PostHeaderProps {
 
 export default function PostHeader({ author, createdAt, privacy }: PostHeaderProps) {
   const displayName = `${author.firstName} ${author.lastName}`;
-  
+  console.log(author);
   return (
     <div className="_feed_inner_timeline_post_top">
       <div className="_feed_inner_timeline_post_box">

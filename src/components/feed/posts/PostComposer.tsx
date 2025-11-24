@@ -1,14 +1,16 @@
 "use client";
 
-import Image from "next/image";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { createPostSchema, CreatePostFormData } from "@/validators/post.validator";
+import { useAuth } from "@/hooks/useAuthQuery";
 import { useCreatePost, useUploadImage } from "@/hooks/usePostsQuery";
-import { useState, useRef } from "react";
+import { CreatePostFormData, createPostSchema } from "@/validators/post.validator";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Image from "next/image";
+import { useRef, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 export default function PostComposer() {
+  const { user } = useAuth();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -113,13 +115,37 @@ export default function PostComposer() {
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="_feed_inner_text_area_box">
           <div className="_feed_inner_text_area_box_image">
-            <Image
-              src="/assets/images/txt_img.png"
-              alt="Profile"
-              className="_txt_img"
-              width={50}
-              height={50}
-            />
+            {user?.avatar ? (
+              <Image
+                src={user.avatar}
+                alt="Profile"
+                className="_txt_img"
+                width={50}
+                height={50}
+                style={{
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                }}
+              />
+            ) : (
+              <div
+                className="_txt_img"
+                style={{
+                  width: "50px",
+                  height: "50px",
+                  borderRadius: "50%",
+                  background: "#e5e7eb",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "20px",
+                  fontWeight: "600",
+                  color: "#4b5563",
+                }}
+              >
+                {user?.firstName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase()}
+              </div>
+            )}
           </div>
           <div className="form-floating _feed_inner_text_area_box_form">
             <textarea

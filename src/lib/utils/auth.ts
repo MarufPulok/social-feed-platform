@@ -1,14 +1,18 @@
-import { NextRequest } from "next/server";
 import connectDB from "@/lib/db/connection";
 import User, { IUser } from "@/lib/models/User";
-import { getAuthCookies, getAccessToken, getRefreshToken } from "./cookies";
-import { verifyAccessToken, verifyRefreshToken, generateTokenPair, JWTPayload } from "./jwt";
+import { NextRequest } from "next/server";
+import { getAccessToken, getAuthCookies, getRefreshToken } from "./cookies";
+import { generateTokenPair, JWTPayload, verifyAccessToken, verifyRefreshToken } from "./jwt";
 
 export interface AuthUser {
   id: string;
+  firstName: string;
+  lastName: string;
   email: string;
   isEmailVerified: boolean;
   avatar?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export async function getCurrentUser(request?: NextRequest): Promise<AuthUser | null> {
@@ -60,9 +64,13 @@ export async function getCurrentUser(request?: NextRequest): Promise<AuthUser | 
 
     return {
       id: user._id.toString(),
+      firstName: user.firstName,
+      lastName: user.lastName,
       email: user.email,
       isEmailVerified: user.isEmailVerified,
       avatar: user.avatar,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     };
   } catch (error) {
     console.error("Error getting current user:", error);
