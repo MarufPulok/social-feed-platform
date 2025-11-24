@@ -95,7 +95,7 @@ export default function FriendsSection() {
                       <UserAvatar
                         user={friend}
                         size={50}
-                        className="_box_ppl_img"
+                        // className="_box_ppl_img"
                       />
                     </Link>
                   </div>
