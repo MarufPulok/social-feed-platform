@@ -28,14 +28,22 @@ export default function FriendsSection() {
     <div className="_feed_right_inner_area_card _padd_t24 _padd_b6 _padd_r24 _padd_l24 _b_radious6 _feed_inner_area">
       <div className="_feed_top_fixed">
         <div className="_feed_right_inner_area_card_content _mar_b24">
-          <h4 className="_feed_right_inner_area_card_content_title _title5">Your Friends</h4>
+          <h4 className="_feed_right_inner_area_card_content_title _title5">
+            Your Friends
+          </h4>
           <span className="_feed_right_inner_area_card_content_txt">
-            <Link className="_feed_right_inner_area_card_content_txt_link" href="/find-friends">
+            <Link
+              className="_feed_right_inner_area_card_content_txt_link"
+              href="/#0"
+            >
               See All
             </Link>
           </span>
         </div>
-        <form className="_feed_right_inner_area_card_form" onSubmit={(e) => e.preventDefault()}>
+        <form
+          className="_feed_right_inner_area_card_form"
+          onSubmit={(e) => e.preventDefault()}
+        >
           <svg
             className="_feed_right_inner_area_card_form_svg"
             xmlns="http://www.w3.org/2000/svg"
@@ -75,17 +83,20 @@ export default function FriendsSection() {
           </div>
         ) : (
           filteredUsers.map((friend) => {
-            const isUnfollowing = unfollowMutation.isPending && unfollowMutation.variables === friend._id;
-            
+            const isUnfollowing =
+              unfollowMutation.isPending &&
+              unfollowMutation.variables === friend._id;
+
             return (
-              <div
-                key={friend._id}
-                className="_feed_right_inner_area_card_ppl"
-              >
+              <div key={friend._id} className="_feed_right_inner_area_card_ppl">
                 <div className="_feed_right_inner_area_card_ppl_box">
                   <div className="_feed_right_inner_area_card_ppl_image">
                     <Link href="/profile">
-                      <UserAvatar user={friend} size={50} className="_box_ppl_img" />
+                      <UserAvatar
+                        user={friend}
+                        size={50}
+                        className="_box_ppl_img"
+                      />
                     </Link>
                   </div>
                   <div className="_feed_right_inner_area_card_ppl_txt">
@@ -94,7 +105,9 @@ export default function FriendsSection() {
                         {friend.firstName} {friend.lastName}
                       </h4>
                     </Link>
-                    <p className="_feed_right_inner_area_card_ppl_para">{friend.email}</p>
+                    <p className="_feed_right_inner_area_card_ppl_para">
+                      {friend.email}
+                    </p>
                   </div>
                 </div>
                 <div className="_feed_right_inner_area_card_ppl_side">

@@ -17,7 +17,9 @@ export default function SuggestedPeopleSection() {
   return (
     <div className="_left_inner_area_suggest _padd_t24 _padd_b6 _padd_r24 _padd_l24 _b_radious6 _feed_inner_area">
       <div className="_left_inner_area_suggest_content _mar_b24">
-        <h4 className="_left_inner_area_suggest_content_title _title5">Suggested People</h4>
+        <h4 className="_left_inner_area_suggest_content_title _title5">
+          Suggested People
+        </h4>
         <span className="_left_inner_area_suggest_content_txt">
           <Link className="_left_inner_area_suggest_content_txt_link" href="#0">
             See All
@@ -39,8 +41,9 @@ export default function SuggestedPeopleSection() {
         </div>
       ) : (
         suggestedUsers.slice(0, 3).map((user) => {
-          const isFollowing = followMutation.isPending && followMutation.variables === user._id;
-          
+          const isFollowing =
+            followMutation.isPending && followMutation.variables === user._id;
+
           return (
             <div key={user._id} className="_left_inner_area_suggest_info">
               <div className="_left_inner_area_suggest_info_box">
@@ -55,7 +58,9 @@ export default function SuggestedPeopleSection() {
                       {user.firstName} {user.lastName}
                     </h4>
                   </Link>
-                  <p className="_left_inner_area_suggest_info_para">{user.email}</p>
+                  {/* <p className="_left_inner_area_suggest_info_para">
+                    {user.email}
+                  </p> */}
                 </div>
               </div>
               <div className="_left_inner_area_suggest_info_link">
@@ -63,7 +68,11 @@ export default function SuggestedPeopleSection() {
                   onClick={() => handleFollow(user._id)}
                   className="_info_link"
                   disabled={isFollowing}
-                  style={{ border: 'none', background: 'none', cursor: isFollowing ? 'not-allowed' : 'pointer' }}
+                  style={{
+                    border: "none",
+                    background: "none",
+                    cursor: isFollowing ? "not-allowed" : "pointer",
+                  }}
                 >
                   {isFollowing ? "Connecting..." : "Connect"}
                 </button>
