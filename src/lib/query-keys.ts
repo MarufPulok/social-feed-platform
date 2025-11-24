@@ -17,7 +17,7 @@ export const queryKeys = {
   comments: {
     all: ["comments"] as const,
     list: (postId: string, cursor?: string) =>
-      [...queryKeys.comments.all, "list", { postId, cursor }] as const,
+      [...queryKeys.comments.all, "list", postId, { cursor }] as const,
   },
   reactions: {
     all: ["reactions"] as const,

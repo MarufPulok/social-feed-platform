@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate("author", "email avatar")
+      .populate("author", "firstName lastName email avatar")
       .lean();
 
     // For each comment, fetch its replies
@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
           parentId: comment._id,
         })
           .sort({ createdAt: 1 }) // Replies oldest first
-          .populate("author", "email avatar")
+          .populate("author", "firstName lastName email avatar")
           .lean();
 
         // Add current user reaction if authenticated
@@ -230,7 +230,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Populate author details
-    await comment.populate("author", "email avatar");
+    await comment.populate("author", "firstName lastName email avatar");
 
     return NextResponse.json<ApiResponse<typeof comment>>(
       {

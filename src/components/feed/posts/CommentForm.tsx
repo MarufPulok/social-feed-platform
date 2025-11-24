@@ -1,17 +1,24 @@
 "use client";
 
+import { useAuth } from "@/hooks/useAuthQuery";
 import { useCreateComment } from "@/hooks/useCommentsQuery";
+import { createCommentSchema } from "@/validators/comment.validator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-const commentSchema = z.object({
-  content: z.string().min(1, "Comment cannot be empty").max(2000),
+// Client-side schema without File validation (we'll handle images later if needed)
+const commentFormSchema = z.object({
+  content: z
+    .string()
+    .min(1, "Comment cannot be empty")
+    .max(2000, "Comment cannot exceed 2000 characters")
+    .trim(),
 });
 
-type CommentFormData = z.infer<typeof commentSchema>;
+type CommentFormData = z.infer<typeof commentFormSchema>;
 
 interface CommentFormProps {
   postId: string;
@@ -26,13 +33,14 @@ export default function CommentForm({
   onSuccess,
   placeholder = "Write a comment"
 }: CommentFormProps) {
+  const { user } = useAuth();
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<CommentFormData>({
-    resolver: zodResolver(commentSchema),
+    resolver: zodResolver(commentFormSchema),
   });
 
   const createComment = useCreateComment();
@@ -58,17 +66,41 @@ export default function CommentForm({
       <form className="_feed_inner_comment_box_form" onSubmit={handleSubmit(onSubmit)}>
         <div className="_feed_inner_comment_box_content">
           <div className="_feed_inner_comment_box_content_image">
-            <Image
-              src="/assets/images/comment_img.png"
-              alt="Profile"
-              className="_comment_img"
-              width={40}
-              height={40}
-            />
+            {user?.avatar ? (
+              <Image
+                src={user.avatar}
+                alt="Profile"
+                className="_comment_img"
+                width={40}
+                height={40}
+                style={{
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                }}
+              />
+            ) : (
+              <div
+                className="_comment_img"
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  borderRadius: "50%",
+                  background: "#e5e7eb",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "16px",
+                  fontWeight: "600",
+                  color: "#4b5563",
+                }}
+              >
+                {user?.firstName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase()}
+              </div>
+            )}
           </div>
           <div className="_feed_inner_comment_box_content_txt">
             <textarea
-              className="form-control _comment_textarea"
+              className={`form-control _comment_textarea ${errors.content ? 'border-danger' : ''}`}
               placeholder={placeholder}
               id={`comment-textarea-${postId}-${parentId || 'main'}`}
               {...register("content")}
@@ -81,14 +113,18 @@ export default function CommentForm({
               }}
             />
             {errors.content && (
-              <span className="text-danger" style={{ fontSize: '12px' }}>
+              <span className="text-danger" style={{ fontSize: '12px', marginTop: '4px', display: 'block' }}>
                 {errors.content.message}
               </span>
             )}
           </div>
         </div>
         <div className="_feed_inner_comment_box_icon">
-          <button type="button" className="_feed_inner_comment_box_icon_btn">
+          <button 
+            type="button" 
+            className="_feed_inner_comment_box_icon_btn"
+            onClick={() => toast.info("Voice recording feature coming soon!")}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16"
@@ -105,7 +141,11 @@ export default function CommentForm({
               />
             </svg>
           </button>
-          <button type="button" className="_feed_inner_comment_box_icon_btn">
+          <button 
+            type="button" 
+            className="_feed_inner_comment_box_icon_btn"
+            onClick={() => toast.info("Image upload feature coming soon!")}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16"

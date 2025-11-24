@@ -123,8 +123,10 @@ export function useCreateComment() {
   return useMutation({
     mutationFn: createComment,
     onSuccess: (data, variables) => {
-      // Invalidate comments query for the post
-      queryClient.invalidateQueries({ queryKey: queryKeys.comments.list(variables.postId) });
+      // Invalidate comments query for the post (all pages)
+      queryClient.invalidateQueries({ 
+        queryKey: [...queryKeys.comments.all, "list", variables.postId] 
+      });
       
       // Invalidate posts query to update comment count
       queryClient.invalidateQueries({ queryKey: queryKeys.posts.all });
