@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 /**
- * Maximum file size for image uploads (5MB)
+ * Maximum file size for image uploads (10MB)
  */
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 /**
  * Accepted image MIME types
@@ -33,7 +33,7 @@ export const createPostSchema = z.object({
     .optional()
     .refine(
       (file) => !file || file.size <= MAX_FILE_SIZE,
-      "Image size must be less than 5MB"
+      "Image size must be less than 10MB"
     )
     .refine(
       (file) => !file || ACCEPTED_IMAGE_TYPES.includes(file.type),
