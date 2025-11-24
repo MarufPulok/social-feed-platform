@@ -1,11 +1,28 @@
-"use client";
 
+import { useDeletePost } from "@/hooks/usePostsQuery";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import DeletePostModal from "./DeletePostModal";
+import EditPostModal from "./EditPostModal";
 
-export default function PostDropdownMenu() {
+interface PostDropdownMenuProps {
+  post: {
+    _id: string;
+    content: string;
+    privacy: "public" | "private";
+    author: {
+      _id: string;
+    };
+  };
+}
+
+export default function PostDropdownMenu({ post }: PostDropdownMenuProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const deletePostMutation = useDeletePost();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -32,6 +49,16 @@ export default function PostDropdownMenu() {
   };
 
   const handleMenuItemClick = () => {
+    setIsDropdownOpen(false);
+  };
+
+  const handleDelete = () => {
+    setIsDeleteModalOpen(true);
+    setIsDropdownOpen(false);
+  };
+
+  const handleEdit = () => {
+    setIsEditModalOpen(true);
     setIsDropdownOpen(false);
   };
 
@@ -146,10 +173,10 @@ export default function PostDropdownMenu() {
             </Link>
           </li>
           <li className="_feed_timeline_dropdown_item">
-            <Link
-              href="#0"
-              className="_feed_timeline_dropdown_link"
-              onClick={handleMenuItemClick}
+            <button
+              type="button"
+              className="_feed_timeline_dropdown_link w-full text-left"
+              onClick={handleEdit}
               style={{ display: "flex", alignItems: "center" }}
             >
               <span>
@@ -177,13 +204,12 @@ export default function PostDropdownMenu() {
                 </svg>
               </span>
               Edit Post
-            </Link>
+            </button>
           </li>
           <li className="_feed_timeline_dropdown_item">
-            <Link
-              href="#0"
-              className="_feed_timeline_dropdown_link"
-              onClick={handleMenuItemClick}
+            <button
+              className="_feed_timeline_dropdown_link w-full text-left"
+              onClick={handleDelete}
               style={{ display: "flex", alignItems: "center" }}
             >
               <span>
@@ -204,10 +230,22 @@ export default function PostDropdownMenu() {
                 </svg>
               </span>
               Delete Post
-            </Link>
+            </button>
           </li>
         </ul>
       </div>
+
+      <EditPostModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        post={post}
+      />
+
+      <DeletePostModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        postId={post._id}
+      />
     </div>
   );
 }

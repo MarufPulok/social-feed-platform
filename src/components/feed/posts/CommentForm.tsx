@@ -8,6 +8,7 @@ import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import UserAvatar from "../UserAvatar";
 
 // Client-side schema without File validation (we'll handle images later if needed)
 const commentFormSchema = z.object({
@@ -66,37 +67,7 @@ export default function CommentForm({
       <form className="_feed_inner_comment_box_form" onSubmit={handleSubmit(onSubmit)}>
         <div className="_feed_inner_comment_box_content">
           <div className="_feed_inner_comment_box_content_image">
-            {user?.avatar ? (
-              <Image
-                src={user.avatar}
-                alt="Profile"
-                className="_comment_img"
-                width={40}
-                height={40}
-                style={{
-                  borderRadius: "50%",
-                  objectFit: "cover",
-                }}
-              />
-            ) : (
-              <div
-                className="_comment_img"
-                style={{
-                  width: "40px",
-                  height: "40px",
-                  borderRadius: "50%",
-                  background: "#e5e7eb",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "16px",
-                  fontWeight: "600",
-                  color: "#4b5563",
-                }}
-              >
-                {user?.firstName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase()}
-              </div>
-            )}
+            <UserAvatar user={user || {}} size={40} />
           </div>
           <div className="_feed_inner_comment_box_content_txt">
             <textarea

@@ -1,6 +1,9 @@
 "use client";
 
+import UserAvatar from "@/components/feed/UserAvatar";
+import { AvatarFallback } from "@/components/ui/avatar";
 import { useFollowUser, useSuggestedUsers } from "@/hooks/useUsersQuery";
+import { User } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -46,37 +49,7 @@ export default function SuggestedPeopleSection() {
               <div className="_left_inner_area_suggest_info_box">
                 <div className="_left_inner_area_suggest_info_image">
                   <Link href="/profile">
-                    {user.avatar ? (
-                      <Image
-                        src={user.avatar}
-                        alt={`${user.firstName} ${user.lastName}`}
-                        className={index === 0 ? "_info_img" : "_info_img1"}
-                        width={50}
-                        height={50}
-                        style={{
-                          borderRadius: "50%",
-                          objectFit: "cover",
-                        }}
-                      />
-                    ) : (
-                      <div
-                        className={index === 0 ? "_info_img" : "_info_img1"}
-                        style={{
-                          width: "50px",
-                          height: "50px",
-                          borderRadius: "50%",
-                          background: "#e5e7eb",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: "18px",
-                          fontWeight: "600",
-                          color: "#4b5563",
-                        }}
-                      >
-                        {user.firstName?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
-                      </div>
-                    )}
+                    <UserAvatar user={user} size={50} />
                   </Link>
                 </div>
                 <div className="_left_inner_area_suggest_info_txt">

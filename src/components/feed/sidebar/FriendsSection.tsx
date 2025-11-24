@@ -1,5 +1,6 @@
 "use client";
 
+import UserAvatar from "@/components/feed/UserAvatar";
 import { useFollowingUsers, useUnfollowUser } from "@/hooks/useUsersQuery";
 import Image from "next/image";
 import Link from "next/link";
@@ -99,23 +100,7 @@ export default function FriendsSection() {
                           }}
                         />
                       ) : (
-                        <div
-                          className="_box_ppl_img"
-                          style={{
-                            width: "50px",
-                            height: "50px",
-                            borderRadius: "50%",
-                            background: "#e5e7eb",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            fontSize: "18px",
-                            fontWeight: "600",
-                            color: "#4b5563",
-                          }}
-                        >
-                          {friend.firstName?.charAt(0).toUpperCase() || friend.email.charAt(0).toUpperCase()}
-                        </div>
+                        <UserAvatar user={friend} size={50} className="_box_ppl_img" />
                       )}
                     </Link>
                   </div>

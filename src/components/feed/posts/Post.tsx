@@ -24,9 +24,10 @@ export default function Post({ post }: PostProps) {
     <div className="_feed_inner_timeline_post_area _b_radious6 _padd_b24 _padd_t24 _mar_b16">
       <div className="_feed_inner_timeline_content _padd_r24 _padd_l24">
         <PostHeader
-          author={post.author}
-          createdAt={formattedDate}
-          privacy={post.privacy}
+          post={{
+            ...post,
+            createdAt: formattedDate,
+          }}
         />
         <div className="_feed_inner_timeline_post_content">
           <p className="whitespace-pre-wrap">{post.content}</p>

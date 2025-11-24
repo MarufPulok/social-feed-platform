@@ -120,6 +120,50 @@ async function uploadImage(file: File, type: "post" | "profile" | "comment" = "p
 }
 
 /**
+ * Delete a post
+ */
+async function deletePost(postId: string): Promise<ApiResponse<{ postId: string }>> {
+  const response = await fetch(API_ENDPOINTS.POSTS.DELETE(postId), {
+    method: "DELETE",
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to delete post");
+  }
+
+  return response.json();
+}
+
+/**
+ * Update a post
+ */
+async function updatePost({
+  postId,
+  data,
+}: {
+  postId: string;
+  data: { content: string; privacy: "public" | "private" };
+}): Promise<ApiResponse<Post>> {
+  const response = await fetch(API_ENDPOINTS.POSTS.UPDATE(postId), {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to update post");
+  }
+
+  return response.json();
+}
+
+/**
  * Hook to fetch posts
  */
 export function usePosts(page = 1, limit = 10) {
@@ -152,6 +196,34 @@ export function useUploadImage() {
   return useMutation({
     mutationFn: ({ file, type }: { file: File; type?: "post" | "profile" | "comment" }) =>
       uploadImage(file, type),
+  });
+}
+
+/**
+ * Hook to delete a post
+ */
+export function useDeletePost() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deletePost,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.posts.all });
+    },
+  });
+}
+
+/**
+ * Hook to update a post
+ */
+export function useUpdatePost() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updatePost,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.posts.all });
+    },
   });
 }
 
