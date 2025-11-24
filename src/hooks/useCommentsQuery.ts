@@ -2,7 +2,7 @@ import { API_ENDPOINTS } from "@/configs/url.config";
 import { ApiResponse } from "@/dtos/response/common.res.dto";
 import { queryKeys } from "@/lib/query-keys";
 import { CreateCommentFormData } from "@/validators/comment.validator";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 /**
  * Comment interface
@@ -110,6 +110,24 @@ export function useComments(postId: string, page = 1, limit = 10) {
     queryKey: queryKeys.comments.list(postId, String(page)),
     queryFn: () => fetchComments(postId, page, limit),
     staleTime: 1000 * 60 * 2, // 2 minutes
+    enabled: !!postId,
+  });
+}
+
+/**
+ * Hook to fetch infinite comments for a post
+ */
+export function useInfiniteComments(postId: string, limit = 10) {
+  return useInfiniteQuery({
+    queryKey: [...queryKeys.comments.all, "list", postId],
+    queryFn: ({ pageParam = 1 }) => fetchComments(postId, pageParam as number, limit),
+    getNextPageParam: (lastPage: ApiResponse<Comment[]>) => {
+      if (lastPage.pagination?.hasMore) {
+        return lastPage.pagination.page + 1;
+      }
+      return undefined;
+    },
+    initialPageParam: 1,
     enabled: !!postId,
   });
 }
