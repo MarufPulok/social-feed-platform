@@ -1,27 +1,18 @@
+"use client";
+
+import { useFollowUser, useSuggestedUsers } from "@/hooks/useUsersQuery";
 import Image from "next/image";
 import Link from "next/link";
 
 export default function SuggestedPeopleSection() {
-  const suggestedPeople = [
-    {
-      name: "Steve Jobs",
-      role: "CEO of Apple",
-      image: "/assets/images/people1.png",
-      profileHref: "/profile",
-    },
-    {
-      name: "Ryan Roslansky",
-      role: "CEO of Linkedin",
-      image: "/assets/images/people2.png",
-      profileHref: "/profile",
-    },
-    {
-      name: "Dylan Field",
-      role: "CEO of Figma",
-      image: "/assets/images/people3.png",
-      profileHref: "/profile",
-    },
-  ];
+  const { data, isLoading, isError } = useSuggestedUsers();
+  const followMutation = useFollowUser();
+
+  const handleFollow = (userId: string) => {
+    followMutation.mutate(userId);
+  };
+
+  const suggestedUsers = data?.data || [];
 
   return (
     <div className="_left_inner_area_suggest _padd_t24 _padd_b6 _padd_r24 _padd_l24 _b_radious6 _feed_inner_area">
@@ -33,34 +24,88 @@ export default function SuggestedPeopleSection() {
           </Link>
         </span>
       </div>
-      {suggestedPeople.map((person, index) => (
-        <div key={index} className="_left_inner_area_suggest_info">
-          <div className="_left_inner_area_suggest_info_box">
-            <div className="_left_inner_area_suggest_info_image">
-              <Link href={person.profileHref}>
-                <Image
-                  src={person.image}
-                  alt={person.name}
-                  className={index === 0 ? "_info_img" : "_info_img1"}
-                  width={50}
-                  height={50}
-                />
-              </Link>
-            </div>
-            <div className="_left_inner_area_suggest_info_txt">
-              <Link href={person.profileHref}>
-                <h4 className="_left_inner_area_suggest_info_title">{person.name}</h4>
-              </Link>
-              <p className="_left_inner_area_suggest_info_para">{person.role}</p>
-            </div>
-          </div>
-          <div className="_left_inner_area_suggest_info_link">
-            <Link href="#0" className="_info_link">
-              Connect
-            </Link>
-          </div>
+
+      {isLoading ? (
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div>
         </div>
-      ))}
+      ) : isError ? (
+        <div className="text-center py-8 text-gray-500">
+          <p>Failed to load suggestions</p>
+        </div>
+      ) : suggestedUsers.length === 0 ? (
+        <div className="text-center py-8 text-gray-500">
+          <p>No suggestions available</p>
+        </div>
+      ) : (
+        suggestedUsers.slice(0, 3).map((user, index) => {
+          const isFollowing = followMutation.isPending && followMutation.variables === user._id;
+          
+          return (
+            <div key={user._id} className="_left_inner_area_suggest_info">
+              <div className="_left_inner_area_suggest_info_box">
+                <div className="_left_inner_area_suggest_info_image">
+                  <Link href="/profile">
+                    {user.avatar ? (
+                      <Image
+                        src={user.avatar}
+                        alt={`${user.firstName} ${user.lastName}`}
+                        className={index === 0 ? "_info_img" : "_info_img1"}
+                        width={50}
+                        height={50}
+                        style={{
+                          borderRadius: "50%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : (
+                      <div
+                        className={index === 0 ? "_info_img" : "_info_img1"}
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          borderRadius: "50%",
+                          background: "#e5e7eb",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "18px",
+                          fontWeight: "600",
+                          color: "#4b5563",
+                        }}
+                      >
+                        {user.firstName?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </Link>
+                </div>
+                <div className="_left_inner_area_suggest_info_txt">
+                  <Link href="/profile">
+                    <h4 className="_left_inner_area_suggest_info_title">
+                      {user.firstName} {user.lastName}
+                    </h4>
+                  </Link>
+                  <p className="_left_inner_area_suggest_info_para">{user.email}</p>
+                </div>
+              </div>
+              <div className="_left_inner_area_suggest_info_link">
+                <button
+                  onClick={() => handleFollow(user._id)}
+                  className="_info_link"
+                  disabled={isFollowing}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: isFollowing ? "not-allowed" : "pointer",
+                  }}
+                >
+                  {isFollowing ? "Connecting..." : "Connect"}
+                </button>
+              </div>
+            </div>
+          );
+        })
+      )}
     </div>
   );
 }

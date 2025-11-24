@@ -1,68 +1,28 @@
+"use client";
+
+import { useFollowingUsers, useUnfollowUser } from "@/hooks/useUsersQuery";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 
 export default function FriendsSection() {
-  const friends = [
-    {
-      name: "Steve Jobs",
-      role: "CEO of Apple",
-      image: "/assets/images/people1.png",
-      profileHref: "/profile",
-      isOnline: false,
-      lastSeen: "5 minute ago",
-    },
-    {
-      name: "Ryan Roslansky",
-      role: "CEO of Linkedin",
-      image: "/assets/images/people2.png",
-      profileHref: "/profile",
-      isOnline: true,
-    },
-    {
-      name: "Dylan Field",
-      role: "CEO of Figma",
-      image: "/assets/images/people3.png",
-      profileHref: "/profile",
-      isOnline: true,
-    },
-    {
-      name: "Steve Jobs",
-      role: "CEO of Apple",
-      image: "/assets/images/people1.png",
-      profileHref: "/profile",
-      isOnline: false,
-      lastSeen: "5 minute ago",
-    },
-    {
-      name: "Ryan Roslansky",
-      role: "CEO of Linkedin",
-      image: "/assets/images/people2.png",
-      profileHref: "/profile",
-      isOnline: true,
-    },
-    {
-      name: "Dylan Field",
-      role: "CEO of Figma",
-      image: "/assets/images/people3.png",
-      profileHref: "/profile",
-      isOnline: true,
-    },
-    {
-      name: "Dylan Field",
-      role: "CEO of Figma",
-      image: "/assets/images/people3.png",
-      profileHref: "/profile",
-      isOnline: true,
-    },
-    {
-      name: "Steve Jobs",
-      role: "CEO of Apple",
-      image: "/assets/images/people1.png",
-      profileHref: "/profile",
-      isOnline: false,
-      lastSeen: "5 minute ago",
-    },
-  ];
+  const { data, isLoading, isError } = useFollowingUsers();
+  const unfollowMutation = useUnfollowUser();
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleUnfollow = (userId: string) => {
+    unfollowMutation.mutate(userId);
+  };
+
+  const followingUsers = data?.data || [];
+
+  // Filter users based on search query
+  const filteredUsers = followingUsers.filter((user) => {
+    const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
+    const email = user.email.toLowerCase();
+    const query = searchQuery.toLowerCase();
+    return fullName.includes(query) || email.includes(query);
+  });
 
   return (
     <div className="_feed_right_inner_area_card _padd_t24 _padd_b6 _padd_r24 _padd_l24 _b_radious6 _feed_inner_area">
@@ -75,7 +35,7 @@ export default function FriendsSection() {
             </Link>
           </span>
         </div>
-        <form className="_feed_right_inner_area_card_form">
+        <form className="_feed_right_inner_area_card_form" onSubmit={(e) => e.preventDefault()}>
           <svg
             className="_feed_right_inner_area_card_form_svg"
             xmlns="http://www.w3.org/2000/svg"
@@ -90,64 +50,105 @@ export default function FriendsSection() {
           <input
             className="form-control me-2 _feed_right_inner_area_card_form_inpt"
             type="search"
-            placeholder="input search text"
+            placeholder="Search friends"
             aria-label="Search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </form>
       </div>
       <div className="_feed_bottom_fixed">
-        {friends.map((friend, index) => (
-          <div
-            key={index}
-            className={`_feed_right_inner_area_card_ppl ${
-              !friend.isOnline ? "_feed_right_inner_area_card_ppl_inactive" : ""
-            }`}
-          >
-            <div className="_feed_right_inner_area_card_ppl_box">
-              <div className="_feed_right_inner_area_card_ppl_image">
-                <Link href={friend.profileHref}>
-                  <Image
-                    src={friend.image}
-                    alt={friend.name}
-                    className="_box_ppl_img"
-                    width={50}
-                    height={50}
-                  />
-                </Link>
-              </div>
-              <div className="_feed_right_inner_area_card_ppl_txt">
-                <Link href={friend.profileHref}>
-                  <h4 className="_feed_right_inner_area_card_ppl_title">{friend.name}</h4>
-                </Link>
-                <p className="_feed_right_inner_area_card_ppl_para">{friend.role}</p>
-              </div>
-            </div>
-            <div className="_feed_right_inner_area_card_ppl_side">
-              {friend.isOnline ? (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
-                  fill="none"
-                  viewBox="0 0 14 14"
-                >
-                  <rect
-                    width="12"
-                    height="12"
-                    x="1"
-                    y="1"
-                    fill="#0ACF83"
-                    stroke="#fff"
-                    strokeWidth="2"
-                    rx="6"
-                  />
-                </svg>
-              ) : (
-                <span>{friend.lastSeen}</span>
-              )}
-            </div>
+        {isLoading ? (
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div>
           </div>
-        ))}
+        ) : isError ? (
+          <div className="text-center py-8 text-gray-500">
+            <p>Failed to load friends</p>
+          </div>
+        ) : filteredUsers.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <p>{searchQuery ? "No friends found" : "No friends yet"}</p>
+            {!searchQuery && (
+              <p className="text-sm mt-2">Follow people to see them here</p>
+            )}
+          </div>
+        ) : (
+          filteredUsers.map((friend) => {
+            const isUnfollowing = unfollowMutation.isPending && unfollowMutation.variables === friend._id;
+            
+            return (
+              <div
+                key={friend._id}
+                className="_feed_right_inner_area_card_ppl"
+                style={{ position: "relative" }}
+              >
+                <div className="_feed_right_inner_area_card_ppl_box">
+                  <div className="_feed_right_inner_area_card_ppl_image">
+                    <Link href="/profile">
+                      {friend.avatar ? (
+                        <Image
+                          src={friend.avatar}
+                          alt={`${friend.firstName} ${friend.lastName}`}
+                          className="_box_ppl_img"
+                          width={50}
+                          height={50}
+                          style={{
+                            borderRadius: "50%",
+                            objectFit: "cover",
+                          }}
+                        />
+                      ) : (
+                        <div
+                          className="_box_ppl_img"
+                          style={{
+                            width: "50px",
+                            height: "50px",
+                            borderRadius: "50%",
+                            background: "#e5e7eb",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "18px",
+                            fontWeight: "600",
+                            color: "#4b5563",
+                          }}
+                        >
+                          {friend.firstName?.charAt(0).toUpperCase() || friend.email.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </Link>
+                  </div>
+                  <div className="_feed_right_inner_area_card_ppl_txt">
+                    <Link href="/profile">
+                      <h4 className="_feed_right_inner_area_card_ppl_title">
+                        {friend.firstName} {friend.lastName}
+                      </h4>
+                    </Link>
+                    <p className="_feed_right_inner_area_card_ppl_para">{friend.email}</p>
+                  </div>
+                </div>
+                <div className="_feed_right_inner_area_card_ppl_side">
+                  <button
+                    onClick={() => handleUnfollow(friend._id)}
+                    disabled={isUnfollowing}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: isUnfollowing ? "not-allowed" : "pointer",
+                      fontSize: "12px",
+                      color: "#666",
+                      padding: "4px 8px",
+                    }}
+                    title="Unfollow"
+                  >
+                    {isUnfollowing ? "..." : "✕"}
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );

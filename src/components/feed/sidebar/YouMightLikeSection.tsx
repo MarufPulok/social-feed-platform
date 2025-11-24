@@ -1,22 +1,26 @@
 "use client";
 
-import { useSuggestedUsers } from "@/hooks/useUsersQuery";
+import { useFollowUser, useSuggestedUsers } from "@/hooks/useUsersQuery";
 import Image from "next/image";
 import Link from "next/link";
-import { toast } from "sonner";
+import { useState } from "react";
 
 export default function YouMightLikeSection() {
   const { data, isLoading, isError } = useSuggestedUsers();
+  const followMutation = useFollowUser();
+  const [ignoredUsers, setIgnoredUsers] = useState<Set<string>>(new Set());
 
-  const handleFollow = () => {
-    toast.info("Feature not implemented yet");
+  const handleFollow = (userId: string) => {
+    followMutation.mutate(userId);
   };
 
-  const handleIgnore = () => {
-    toast.info("Feature not implemented yet");
+  const handleIgnore = (userId: string) => {
+    setIgnoredUsers((prev) => new Set(prev).add(userId));
   };
 
-  const suggestedUsers = data?.data || [];
+  const suggestedUsers = (data?.data || []).filter(
+    (user) => !ignoredUsers.has(user._id)
+  );
 
   return (
     <div className="_right_inner_area_info _padd_t24 _padd_b24 _padd_r24 _padd_l24 _b_radious6 _feed_inner_area">
@@ -43,71 +47,76 @@ export default function YouMightLikeSection() {
           <p>No suggestions available</p>
         </div>
       ) : (
-        suggestedUsers.map((user) => (
-          <div key={user._id} className="_right_inner_area_info_ppl">
-            <div className="_right_inner_area_info_box">
-              <div className="_right_inner_area_info_box_image">
-                <Link href="/profile">
-                  {user.avatar ? (
-                    <Image
-                      src={user.avatar}
-                      alt={`${user.firstName} ${user.lastName}`}
-                      className="_ppl_img"
-                      width={50}
-                      height={50}
-                      style={{
-                        borderRadius: "50%",
-                        objectFit: "cover",
-                      }}
-                    />
-                  ) : (
-                    <div
-                      className="_ppl_img"
-                      style={{
-                        width: "50px",
-                        height: "50px",
-                        borderRadius: "50%",
-                        background: "#e5e7eb",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "18px",
-                        fontWeight: "600",
-                        color: "#4b5563",
-                      }}
-                    >
-                      {user.firstName?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                </Link>
+        suggestedUsers.map((user) => {
+          const isFollowing = followMutation.isPending && followMutation.variables === user._id;
+          
+          return (
+            <div key={user._id} className="_right_inner_area_info_ppl">
+              <div className="_right_inner_area_info_box">
+                <div className="_right_inner_area_info_box_image">
+                  <Link href="/profile">
+                    {user.avatar ? (
+                      <Image
+                        src={user.avatar}
+                        alt={`${user.firstName} ${user.lastName}`}
+                        className="_ppl_img"
+                        width={50}
+                        height={50}
+                        style={{
+                          borderRadius: "50%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : (
+                      <div
+                        className="_ppl_img"
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          borderRadius: "50%",
+                          background: "#e5e7eb",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "18px",
+                          fontWeight: "600",
+                          color: "#4b5563",
+                        }}
+                      >
+                        {user.firstName?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </Link>
+                </div>
+                <div className="_right_inner_area_info_box_txt">
+                  <Link href="/profile">
+                    <h4 className="_right_inner_area_info_box_title">
+                      {user.firstName} {user.lastName}
+                    </h4>
+                  </Link>
+                  <p className="_right_inner_area_info_box_para">{user.email}</p>
+                </div>
               </div>
-              <div className="_right_inner_area_info_box_txt">
-                <Link href="/profile">
-                  <h4 className="_right_inner_area_info_box_title">
-                    {user.firstName} {user.lastName}
-                  </h4>
-                </Link>
-                <p className="_right_inner_area_info_box_para">{user.email}</p>
+              <div className="_right_info_btn_grp">
+                <button 
+                  type="button" 
+                  className="_right_info_btn_link"
+                  onClick={() => handleIgnore(user._id)}
+                >
+                  Ignore
+                </button>
+                <button 
+                  type="button" 
+                  className="_right_info_btn_link _right_info_btn_link_active"
+                  onClick={() => handleFollow(user._id)}
+                  disabled={isFollowing}
+                >
+                  {isFollowing ? "Following..." : "Follow"}
+                </button>
               </div>
             </div>
-            <div className="_right_info_btn_grp">
-              <button 
-                type="button" 
-                className="_right_info_btn_link"
-                onClick={handleIgnore}
-              >
-                Ignore
-              </button>
-              <button 
-                type="button" 
-                className="_right_info_btn_link _right_info_btn_link_active"
-                onClick={handleFollow}
-              >
-                Follow
-              </button>
-            </div>
-          </div>
-        ))
+          );
+        })
       )}
     </div>
   );

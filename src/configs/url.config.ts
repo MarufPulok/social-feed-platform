@@ -32,6 +32,9 @@ export const API_ENDPOINTS = {
   },
   USERS: {
     SUGGESTED: `${API_BASE_URL}/users/suggested`,
+    FOLLOW: (userId: string) => `${API_BASE_URL}/users/${userId}/follow`,
+    UNFOLLOW: (userId: string) => `${API_BASE_URL}/users/${userId}/unfollow`,
+    FOLLOWING: `${API_BASE_URL}/users/following`,
   },
 };
 

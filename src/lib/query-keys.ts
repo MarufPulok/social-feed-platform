@@ -27,6 +27,7 @@ export const queryKeys = {
   users: {
     all: ["users"] as const,
     suggested: () => [...queryKeys.users.all, "suggested"] as const,
+    following: () => [...queryKeys.users.all, "following"] as const,
   },
 } as const;
 
