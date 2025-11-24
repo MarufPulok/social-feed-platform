@@ -56,84 +56,42 @@ export default function PostReactionsDisplay({ post }: PostReactionsDisplayProps
           >
             {uniqueReactions.map((reaction, index) => {
               const user = reaction.userId;
-              // Skip if user data is missing (e.g. legacy data issue)
+              // Skip if user data is missing
               if (!user || typeof user === 'string') return null;
 
-              // Reaction icon mapping
-              const reactionIconPath = {
-                like: "/svg/like_react.svg",
-                love: "/svg/love_react.svg",
-                haha: "/svg/haha_react.svg",
-                angry: "/svg/angry_react.svg",
-              }[reaction.type];
+              // CSS class based on index (matching feed.html pattern)
+              const imgClassName = index === 0 
+                ? "_react_img1" 
+                : index >= 2 
+                  ? "_react_img _rect_img_mbl_none" 
+                  : "_react_img";
 
-              return (
-                <div
+              return user.avatar ? (
+                <Image
                   key={index}
+                  src={user.avatar}
+                  alt="Image"
+                  className={imgClassName}
+                  width={32}
+                  height={32}
+                />
+              ) : (
+                <span
+                  key={index}
+                  className={imgClassName}
                   style={{
-                    position: "relative",
-                    display: "inline-block",
+                    width: "32px",
+                    height: "32px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "14px",
+                    fontWeight: "600",
+                    color: "#4b5563",
                   }}
                 >
-                  {user.avatar ? (
-                    <Image
-                      src={user.avatar}
-                      alt={user.email}
-                      className={index === 0 ? "_react_img1" : index < 2 ? "_react_img" : "_react_img _rect_img_mbl_none"}
-                      width={32}
-                      height={32}
-                      style={{ borderRadius: "50%", objectFit: "cover" }}
-                    />
-                  ) : (
-                    <div
-                      className={index === 0 ? "_react_img1" : index < 2 ? "_react_img" : "_react_img _rect_img_mbl_none"}
-                      style={{
-                        width: "32px",
-                        height: "32px",
-                        borderRadius: "50%",
-                        background: "#e5e7eb",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "14px",
-                        fontWeight: "600",
-                        color: "#4b5563",
-                        border: "2px solid #fff",
-                        marginLeft: index > 0 ? "-10px" : "0",
-                        position: "relative",
-                        zIndex: 3 - index,
-                      }}
-                    >
-                      {user.email?.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                  {/* Reaction icon badge */}
-                  {reactionIconPath && (
-                    <div
-                      style={{
-                        position: "absolute",
-                        bottom: "-2px",
-                        right: "-2px",
-                        width: "16px",
-                        height: "16px",
-                        borderRadius: "50%",
-                        background: "white",
-                        border: "1px solid white",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        zIndex: 10,
-                      }}
-                    >
-                      <NextImage
-                        src={reactionIconPath}
-                        alt={reaction.type}
-                        width={14}
-                        height={14}
-                      />
-                    </div>
-                  )}
-                </div>
+                  {user.email?.charAt(0).toUpperCase()}
+                </span>
               );
             })}
             {totalReactions > 0 && (
