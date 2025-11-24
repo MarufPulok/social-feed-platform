@@ -5,10 +5,15 @@
 
 "use client";
 
-import { useAuth, useLogin, useLogout, useRegister } from "@/hooks/useAuthQuery";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { loginReqSchema, registerReqSchema } from "@/dtos/request/auth.req.dto";
+import {
+  useAuth,
+  useLogin,
+  useLogout,
+  useRegister,
+} from "@/hooks/useAuthQuery";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 // Example 1: Using the combined useAuth hook
@@ -34,14 +39,17 @@ export function UserProfile() {
 // Example 2: Login form with mutation
 export function QuickLoginForm() {
   const loginMutation = useLogin();
-  const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof loginReqSchema>>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<z.infer<typeof loginReqSchema>>({
     resolver: zodResolver(loginReqSchema),
   });
 
   const onSubmit = async (data: z.infer<typeof loginReqSchema>) => {
     try {
       await loginMutation.mutateAsync(data);
-      console.log("Login successful!");
     } catch (error) {
       console.error("Login failed:", error);
     }
@@ -51,10 +59,10 @@ export function QuickLoginForm() {
     <form onSubmit={handleSubmit(onSubmit)}>
       <input {...register("email")} placeholder="Email" />
       {errors.email && <span>{errors.email.message}</span>}
-      
+
       <input {...register("password")} type="password" placeholder="Password" />
       {errors.password && <span>{errors.password.message}</span>}
-      
+
       <button type="submit" disabled={loginMutation.isPending}>
         {loginMutation.isPending ? "Logging in..." : "Login"}
       </button>
@@ -65,14 +73,17 @@ export function QuickLoginForm() {
 // Example 3: Register form with mutation
 export function QuickRegisterForm() {
   const registerMutation = useRegister();
-  const { register, handleSubmit, formState: { errors } } = useForm<z.infer<typeof registerReqSchema>>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<z.infer<typeof registerReqSchema>>({
     resolver: zodResolver(registerReqSchema),
   });
 
   const onSubmit = async (data: z.infer<typeof registerReqSchema>) => {
     try {
       await registerMutation.mutateAsync(data);
-      console.log("Registration successful!");
     } catch (error) {
       console.error("Registration failed:", error);
     }
@@ -82,10 +93,10 @@ export function QuickRegisterForm() {
     <form onSubmit={handleSubmit(onSubmit)}>
       <input {...register("email")} placeholder="Email" />
       {errors.email && <span>{errors.email.message}</span>}
-      
+
       <input {...register("password")} type="password" placeholder="Password" />
       {errors.password && <span>{errors.password.message}</span>}
-      
+
       <button type="submit" disabled={registerMutation.isPending}>
         {registerMutation.isPending ? "Registering..." : "Register"}
       </button>
@@ -100,7 +111,6 @@ export function LogoutButton() {
   const handleLogout = async () => {
     try {
       await logoutMutation.mutateAsync();
-      console.log("Logged out successfully");
     } catch (error) {
       console.error("Logout failed:", error);
     }
@@ -141,9 +151,7 @@ export function AdvancedLoginForm() {
 
   const onSubmit = (data: z.infer<typeof loginReqSchema>) => {
     loginMutation.mutate(data, {
-      onSuccess: () => {
-        console.log("Login successful!");
-      },
+      onSuccess: () => {},
       onError: (error) => {
         console.error("Login failed:", error.message);
       },
@@ -154,21 +162,18 @@ export function AdvancedLoginForm() {
     <form onSubmit={handleSubmit(onSubmit)}>
       <input {...register("email")} />
       <input {...register("password")} type="password" />
-      
+
       <button type="submit" disabled={loginMutation.isPending}>
         Login
       </button>
-      
+
       {loginMutation.isError && (
-        <div className="error">
-          Error: {loginMutation.error?.message}
-        </div>
+        <div className="error">Error: {loginMutation.error?.message}</div>
       )}
-      
+
       {loginMutation.isSuccess && (
         <div className="success">Login successful!</div>
       )}
     </form>
   );
 }
-
