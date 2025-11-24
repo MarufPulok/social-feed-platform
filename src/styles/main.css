@@ -1492,6 +1492,9 @@
     border-radius: 40px;
     width: 32px;
     height:32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 ._public_story_img {
     border-radius: 6px;
