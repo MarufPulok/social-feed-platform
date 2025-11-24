@@ -1,5 +1,7 @@
 "use client";
 
+import { useAuth } from "@/hooks/useAuthQuery";
+import { auth } from "google-auth-library";
 import Image from "next/image";
 import Link from "next/link";
 import PostDropdownMenu from "./PostDropdownMenu";
@@ -16,9 +18,14 @@ interface PostHeaderProps {
   privacy: "public" | "private";
 }
 
-export default function PostHeader({ author, createdAt, privacy }: PostHeaderProps) {
+export default function PostHeader({
+  author,
+  createdAt,
+  privacy,
+}: PostHeaderProps) {
   const displayName = `${author.firstName} ${author.lastName}`;
-  console.log(author);
+  const { user } = useAuth();
+
   return (
     <div className="_feed_inner_timeline_post_top">
       <div className="_feed_inner_timeline_post_box">
@@ -48,19 +55,23 @@ export default function PostHeader({ author, createdAt, privacy }: PostHeaderPro
                 color: "#4b5563",
               }}
             >
-              {author.firstName?.charAt(0).toUpperCase() || author.email.charAt(0).toUpperCase()}
+              {author.firstName?.charAt(0).toUpperCase() ||
+                author.email.charAt(0).toUpperCase()}
             </div>
           )}
         </div>
         <div className="_feed_inner_timeline_post_box_txt">
           <h4 className="_feed_inner_timeline_post_box_title">{displayName}</h4>
           <p className="_feed_inner_timeline_post_box_para">
-            {createdAt} . <Link href="#0" className="capitalize">{privacy}</Link>
+            {createdAt} .{" "}
+            <Link href="#0" className="capitalize">
+              {privacy}
+            </Link>
           </p>
         </div>
       </div>
       <div className="_feed_inner_timeline_post_box_dropdown">
-        <PostDropdownMenu />
+        {user?.id === author._id && <PostDropdownMenu />}
       </div>
     </div>
   );
